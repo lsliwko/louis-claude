@@ -52,11 +52,10 @@ button:active{transform:scale(.97)}
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><span id="prog">Word 1 of 14</span><span class="stars">★ <span id="score">0</span></span></div>
+  <div class="top"><span id="prog">Word 1 of 8</span><span class="stars">★ <span id="score">0</span></span></div>
   <div class="bar"><i id="bar"></i></div>
   <div class="card" id="card">
     <p class="word" id="word">he</p>
-    <p class="ex" id="ex">He is my brother.</p>
     <button class="hear" id="hear" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>Hear it</button>
   </div>
   <div id="ctrl" style="display:flex;flex-direction:column;gap:12px">
@@ -71,20 +70,14 @@ button:active{transform:scale(.97)}
 </div>
 <script>
 var W=[
-{w:"I",e:"I am happy.",s:["i","eye","aye","ay","hi"]},
-{w:"me",e:"Give it to me.",s:["me","mi"]},
-{w:"my",e:"This is my ball.",s:["my","mai"]},
-{w:"you",e:"I like you.",s:["you","u","ewe","yu"]},
-{w:"he",e:"He is my brother.",s:["he","hee"]},
-{w:"him",e:"I see him.",s:["him","hymn"]},
-{w:"his",e:"That is his hat.",s:["his","hiz"]},
-{w:"she",e:"She is my sister.",s:["she","shee"]},
-{w:"her",e:"I gave it to her.",s:["her","hur"]},
-{w:"we",e:"We are friends.",s:["we","wee","wii"]},
-{w:"us",e:"Come with us.",s:["us"]},
-{w:"they",e:"They are playing.",s:["they","thay"]},
-{w:"them",e:"I like them.",s:["them","dem"]},
-{w:"it",e:"It is a cat.",s:["it"]}
+{w:"I",s:["i","eye","aye","ay"]},
+{w:"be",s:["be","bee","b"]},
+{w:"me",s:["me","mi"]},
+{w:"we",s:["we","wee","wii"]},
+{w:"to",s:["to","too","two","2"]},
+{w:"he",s:["he","hee"]},
+{w:"she",s:["she","shee"]},
+{w:"was",s:["was","woz","wuz"]}
 ];
 function $(id){return document.getElementById(id)}
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
@@ -93,14 +86,14 @@ function say(t){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(
 function fb(t,k){var f=$('fb');f.textContent=t;f.className='fb'+(k?' '+k:'')}
 function show(){var x=order[n];tries=0;busy=false;
   $('prog').textContent='Word '+(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';
-  $('word').textContent=x.w;$('ex').textContent=x.e;fb('')}
+  $('word').textContent=x.w;fb('')}
 function right(){if(busy)return;busy=true;if(tries===0){score++;$('score').textContent=score}
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   say('Yes! '+order[n].w);setTimeout(function(){n++;n<order.length?show():end()},1400)}
 function wrong(m){tries++;fb(m||'Not quite. Listen and try again!','no');setTimeout(function(){say(order[n].w)},400)}
-$('hear').onclick=function(){var x=order[n];say(x.w+'. '+x.e)};
+$('hear').onclick=function(){say(order[n].w)};
 $('yes').onclick=right;$('no').onclick=function(){if(!busy)wrong()};
-function norm(t){return t.toLowerCase().replace(/[^a-z ]/g,'').trim()}
+function norm(t){return t.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim()}
 function stopUI(){$('mic').classList.remove('live');$('micl').textContent='Tap and say the word'}
 var NOMIC="The microphone isn't available here. Use the buttons below.";
 $('mic').onclick=function(){
@@ -122,7 +115,7 @@ $('mic').onclick=function(){
   try{rec.start();$('mic').classList.add('live');$('micl').textContent='Listening…';fb('')}catch(e){stopUI();fb(NOMIC,'info')}
 };
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
-  var st=score>=13?3:score>=9?2:1,s='';for(var i=0;i<3;i++)s+=i<st?'<span>★</span>':'<span class="off">★</span>';
+  var L=order.length,st=score>=L-1?3:score>=Math.ceil(L*0.6)?2:1,s='';for(var i=0;i<3;i++)s+=i<st?'<span>★</span>':'<span class="off">★</span>';
   $('card').className='card end';
   $('card').innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' first time!</h2><p class="ex">'+(st===3?'Amazing talking.':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="mic" style="margin-top:8px">Play again</button>';
   $('ctrl').innerHTML='';
