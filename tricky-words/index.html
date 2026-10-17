@@ -20,6 +20,7 @@
   --ground:#10162A; --card:#1A2240; --ink:#EEF2FF; --soft:#A9B2D3; --line:#2E3963;
   --accent:#8EA8FF; --accent-bg:#26326A; --good:#7FD8A8; --good-bg:#173D2B; --bad:#FF9C92; --bad-bg:#4A1F1C; --star:#F4C04E; color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 32px}
 .wrap{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
@@ -74,6 +75,7 @@ button:active{transform:scale(.97)}
     <p class="word" id="word">he</p>
     <button class="hear" id="hear" type="button" aria-label="Hear the word"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
   </div>
+  <div class="card end" id="endcard" hidden></div>
   <div id="ctrl" style="display:flex;flex-direction:column;gap:12px">
     <button class="mic" id="mic" type="button" aria-label="Tap and say the word"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="micl" class="sr">Tap and say the word</span><span class="mbar" id="mbar" aria-hidden="true"></span></button>
     <p class="fb" id="fb" aria-live="polite"></p>
@@ -242,12 +244,17 @@ function run(x,attempt){
 }
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
-  $('card').className='card end';
-  $('card').innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' words!</h2><p class="ex">'+(st===L?'Amazing talking.':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="mic" style="margin-top:8px" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';
-  $('ctrl').innerHTML='';
-  $('again').onclick=function(){location.reload()};
+  var ec=$('endcard');ec.innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' words!</h2><p class="ex">'+(st===L?'Amazing talking.':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="mic" style="margin-top:8px" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';
+  $('card').hidden=true;$('ctrl').hidden=true;ec.hidden=false;
+  $('again').onclick=function(){if(!lock('again'))return;restart()};
   say('All done! Well done!')}
+function restart(){try{if(cancelCur)cancelCur()}catch(e){}try{speechSynthesis.cancel()}catch(e){}
+  order=shuf(W).slice(0,ROUND);n=0;score=0;res=[];tries=0;busy=false;drawStars();
+  $('endcard').hidden=true;$('endcard').innerHTML='';$('card').hidden=false;$('ctrl').hidden=false;show()}
+window.addEventListener('pagehide',function(){try{if(cancelCur)cancelCur()}catch(e){}try{if(rec)rec.abort()}catch(e){}
+  try{speechSynthesis.cancel()}catch(e){}try{if(AC)AC.close()}catch(e){}});
 function preAskMic(){try{if(!SR||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return;
+  try{if(sessionStorage.getItem('micAsked'))return;sessionStorage.setItem('micAsked','1')}catch(e){}
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){st.getTracks().forEach(function(t){t.stop()})}).catch(function(){})}catch(e){}}
 drawStars();show();preAskMic();
 </script>
