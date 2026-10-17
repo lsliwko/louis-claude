@@ -5,7 +5,7 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 ## Layout
 
 - `index.html` is the menu. It shows one picture tile per game.
-- Each game lives in its own folder with its own `index.html`, for example `pronouns/`.
+- Each game lives in its own folder with its own `index.html`, for example `tricky-words/`.
 
 ## Adding a game
 
@@ -15,4 +15,4 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 
 ## Games
 
-- `pronouns/`: Tricky Words. A word is shown, the child taps the microphone and says it. A right answer plays cheering and fireworks; a wrong one asks to try again, and after four tries the game moves on.
+- `tricky-words/`: Tricky Words. A word is shown, the child taps the microphone and says it. A right answer plays cheering and fireworks; a wrong one asks to try again, and after four tries the game moves on.
