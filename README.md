@@ -15,4 +15,4 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 
 ## Games
 
-- `tricky-words/`: Tricky Words. A word is shown, the child taps the microphone and says it. A right answer plays cheering and fireworks; a wrong one asks to try again, and after four tries the game moves on.
+- `tricky-words/`: Tricky Words. A word is shown, the child taps the microphone and says it. A right answer plays cheering and fireworks; a wrong one asks to try again, and after four tries the game moves on. Each round is 5 words picked at random, with a star for each one said right first time.
