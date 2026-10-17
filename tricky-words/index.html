@@ -47,6 +47,7 @@ button:active{transform:scale(.97)}
 .mic{width:100%;min-height:96px;font-family:var(--display);font-weight:700;font-size:22px;background:var(--accent);color:var(--card);border-color:var(--accent);display:flex;align-items:center;justify-content:center;gap:10px}
 .mic{position:relative;overflow:hidden}
 .mbar{position:absolute;left:0;bottom:0;height:10px;width:0;background:var(--card);opacity:.85;border-radius:0 5px 5px 0}
+.hear:disabled,.mic:disabled{opacity:.75;cursor:default}
 .mic.live{background:var(--bad);border-color:var(--bad)}
 @keyframes pulse{50%{transform:scale(1.03)}}
 .fb{min-height:32px;text-align:center;font-family:var(--display);font-weight:700;font-size:22px;margin:0}
@@ -151,7 +152,8 @@ function wrong(m){if(busy)return;tries++;buzz();
   if(tries>=4){busy=true;mark(false);fb("Let's try the next one",'info');setTimeout(function(){say("Let's try the next one")},850);
     setTimeout(function(){n++;n<order.length?show():end()},3000);return}
   fb(m||'Please try again','no');setTimeout(function(){say('Please try again')},850)}
-$('hear').onclick=function(){var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].sp||order[n].w)};
+function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},500);return true}
+$('hear').onclick=function(){if(!lock('hear'))return;var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].sp||order[n].w)};
 
 function norm(t){return t.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim()}
 var LISTEN=4500,listenTimer=null;
@@ -162,7 +164,7 @@ function startUI(){var m=$('mic'),b=$('mbar');m.classList.add('live');$('micl').
 var NOMIC="The microphone isn't available in this browser.";
 function matches(x,t){var ws=t.split(/\s+/);return x.s.indexOf(t)>=0||(ws.length<=2&&ws.some(function(w){return x.s.indexOf(w)>=0}))}
 $('mic').onclick=function(){
-  ac();if(busy)return;
+  if(!lock('mic'))return;ac();if(busy)return;
   if(!SR){fb(NOMIC,'info');return}
   if(rec){try{rec.abort()}catch(e){}rec=null;stopUI();return}
   try{rec=new SR();rec.lang='en-GB';rec.maxAlternatives=5;rec.interimResults=true;rec.continuous=false}catch(e){fb(NOMIC,'info');return}
