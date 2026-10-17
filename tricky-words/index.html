@@ -80,14 +80,14 @@ button:active{transform:scale(.97)}
 </div>
 <script>
 var W=[
-{w:"I",sp:"eye",s:["i","eye","aye","ay"]},
-{w:"be",s:["be","bee","b"]},
-{w:"me",s:["me","mi"]},
-{w:"we",s:["we","wee","wii"]},
-{w:"to",s:["to","too","two","2"]},
-{w:"he",s:["he","hee"]},
-{w:"she",s:["she","shee"]},
-{w:"was",s:["was","woz","wuz"]}
+{w:"I",sp:"eye",s:["i","eye","aye","ay","ai","hi","high","oi","ah"]},
+{w:"be",s:["be","bee","b","bea","bey","beat","bean","pea","pee","p"]},
+{w:"me",s:["me","mi","mee","mea","meet","meat","knee","nee"]},
+{w:"we",s:["we","wee","wii","whee","oui","weed","wed","week","wheat"]},
+{w:"to",s:["to","too","two","2","tu","toe","do","doo","tooth"]},
+{w:"he",s:["he","hee","hey","heat","hes","hed","e","ee","eat"]},
+{w:"she",s:["she","shee","shi","sea","see","c","chi","chee","shea","sheep","sheet","sheesh"]},
+{w:"was",s:["was","woz","wuz","what","whats","horse","hoss","wars","war","worse","wasp","wash","wuss","oz","does","boss","laws"]}
 ];
 function $(id){return document.getElementById(id)}
 var AC=null;
@@ -162,7 +162,12 @@ function stopUI(){clearTimeout(listenTimer);var m=$('mic'),b=$('mbar');m.classLi
 function startUI(){var m=$('mic'),b=$('mbar');m.classList.add('live');$('micl').textContent='Listening…';
   b.style.transition='none';b.style.width='100%';void b.offsetWidth;b.style.transition='width '+LISTEN+'ms linear';b.style.width='0%'}
 var NOMIC="The microphone isn't available in this browser.";
-function matches(x,t){var ws=t.split(/\s+/);return x.s.indexOf(t)>=0||(ws.length<=2&&ws.some(function(w){return x.s.indexOf(w)>=0}))}
+function lev(a,b){var m=a.length,n=b.length,d=[],i,j;for(i=0;i<=m;i++){d[i]=[i]}for(j=0;j<=n;j++)d[0][j]=j;
+  for(i=1;i<=m;i++)for(j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
+var TARGETS=W.map(function(v){return v.w.toLowerCase()});
+function close(x,w){var tw=x.w.toLowerCase();if(x.s.indexOf(w)>=0)return true;
+  if(tw.length>=3&&w!==tw&&TARGETS.indexOf(w)<0&&lev(w,tw)<=1)return true;return false}
+function matches(x,t){if(close(x,t))return true;var ws=t.split(/\s+/);return ws.length<=2&&ws.some(function(w){return close(x,w)})}
 $('mic').onclick=function(){
   if(!lock('mic'))return;ac();if(busy)return;
   if(!SR){fb(NOMIC,'info');return}
