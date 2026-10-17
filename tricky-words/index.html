@@ -194,7 +194,9 @@ function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   $('ctrl').innerHTML='';
   $('again').onclick=function(){location.reload()};
   say('All done! Well done!')}
-drawStars();show();
+function preAskMic(){try{if(!SR||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return;
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){st.getTracks().forEach(function(t){t.stop()})}).catch(function(){})}catch(e){}}
+drawStars();show();preAskMic();
 </script>
 </body>
 </html>
