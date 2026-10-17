@@ -33,8 +33,9 @@ body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);
 button{font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 18px;cursor:pointer;touch-action:manipulation}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 button:active{transform:scale(.97)}
-.hear{font-weight:600;font-size:16px;display:inline-flex;align-items:center;gap:8px}
-.mic{width:100%;min-height:68px;font-family:var(--display);font-weight:700;font-size:22px;background:var(--accent);color:var(--card);border-color:var(--accent);display:flex;align-items:center;justify-content:center;gap:10px}
+.hear{width:72px;height:72px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--accent);background:var(--accent-bg);border-color:var(--accent)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.mic{width:100%;min-height:96px;font-family:var(--display);font-weight:700;font-size:22px;background:var(--accent);color:var(--card);border-color:var(--accent);display:flex;align-items:center;justify-content:center;gap:10px}
 .mic.live{background:var(--bad);border-color:var(--bad);animation:pulse 1s infinite}
 @keyframes pulse{50%{transform:scale(1.03)}}
 .fb{min-height:32px;text-align:center;font-family:var(--display);font-weight:700;font-size:22px;margin:0}
@@ -58,10 +59,10 @@ button:active{transform:scale(.97)}
   <div class="bar"><i id="bar"></i></div>
   <div class="card" id="card">
     <p class="word" id="word">he</p>
-    <button class="hear" id="hear" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>Hear it</button>
+    <button class="hear" id="hear" type="button" aria-label="Hear the word"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
   </div>
   <div id="ctrl" style="display:flex;flex-direction:column;gap:12px">
-    <button class="mic" id="mic" type="button"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="micl">Tap and say the word</span></button>
+    <button class="mic" id="mic" type="button" aria-label="Tap and say the word"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="micl" class="sr">Tap and say the word</span></button>
     <p class="fb" id="fb" aria-live="polite"></p>
     <p class="label">Grown-up: mark it yourself</p>
     <div class="marks">
@@ -154,7 +155,7 @@ $('mic').onclick=function(){
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score>=L-1?3:score>=Math.ceil(L*0.6)?2:1,s='';for(var i=0;i<3;i++)s+=i<st?'<span>★</span>':'<span class="off">★</span>';
   $('card').className='card end';
-  $('card').innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' first time!</h2><p class="ex">'+(st===3?'Amazing talking.':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="mic" style="margin-top:8px">Play again</button>';
+  $('card').innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' first time!</h2><p class="ex">'+(st===3?'Amazing talking.':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="mic" style="margin-top:8px" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';
   $('ctrl').innerHTML='';
   $('again').onclick=function(){order=shuf(W);n=0;score=0;$('score').textContent=0;location.reload()};
   say('All done! Well done!')}
