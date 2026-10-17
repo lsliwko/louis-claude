@@ -135,13 +135,16 @@ function explode(p){boom();flashes.push({x:p.x,y:p.y,life:0});
 function rocket(type){var w=innerWidth,h=innerHeight,x=w*(0.15+Math.random()*0.7),ty=h*(0.12+Math.random()*0.3);
   var vy=-Math.sqrt(2*0.12*(h-ty))*0.98;parts.push({kind:'rocket',x:x,y:h+10,px:x,py:h+10,vx:(Math.random()-0.5)*1.2,vy:vy,c:pick(COLS),type:type,life:0,max:999});loop()}
 var fwTimers=[];
+function fwLater(fn,ms){var id=setTimeout(function(){fwTimers=fwTimers.filter(function(x){return x!==id});fn()},ms);fwTimers.push(id)}
+function afterFx(cb){var t0=Date.now();(function chk(){var on=parts.length||flashes.length||fwTimers.length,el=Date.now()-t0;
+  if((!on&&el>1800)||el>10000)cb();else setTimeout(chk,150)})()}
 function clearFx(){fwTimers.forEach(clearTimeout);fwTimers=[];parts.length=0;flashes.length=0;fctx.clearRect(0,0,innerWidth,innerHeight)}
 document.addEventListener('pointerdown',function(e){if(e.target&&e.target.closest&&e.target.closest('button,a'))clearFx()},true);
 function loop(){if(!running){running=true;requestAnimationFrame(tick)}}
 function fireworks(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   sizeFx();var seq=['sphere','ring','willow','heart','crackle','sphere','ring','willow'];
-  seq.forEach(function(t,i){fwTimers.push(setTimeout(function(){rocket(t)},i*330))});
-  fwTimers.push(setTimeout(function(){rocket('sphere');rocket('ring')},2800));
+  seq.forEach(function(t,i){fwLater(function(){rocket(t)},i*330)});
+  fwLater(function(){rocket('sphere');rocket('ring')},2800);
 }
 function tick(){fctx.clearRect(0,0,innerWidth,innerHeight);fctx.lineCap='round';
   for(var f=flashes.length-1;f>=0;f--){var fl=flashes[f];fl.life++;if(fl.life>10){flashes.splice(f,1);continue}
@@ -179,7 +182,7 @@ function show(){var x=order[n];tries=0;busy=false;
   $('word').textContent=x.w;fb('')}
 function right(){if(busy)return;busy=true;score++;mark(true);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
-  try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();setTimeout(function(){n++;n<order.length?show():end()},4300)}
+  try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})}
 function wrong(m){if(busy)return;tries++;buzz();
   if(tries>=4){busy=true;mark(false);fb("Let's try the next one",'info');setTimeout(function(){say("Let's try the next one")},850);
     setTimeout(function(){n++;n<order.length?show():end()},3000);return}
