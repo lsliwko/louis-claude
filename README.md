@@ -15,4 +15,4 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 
 ## Games
 
-- `pronouns/`: Say the word. A word is shown, the child taps the microphone and says it. A right answer plays cheering and fireworks; a wrong one asks to try again, and after four tries the game moves on.
+- `pronouns/`: Tricky Words. A word is shown, the child taps the microphone and says it. A right answer plays cheering and fireworks; a wrong one asks to try again, and after four tries the game moves on.
