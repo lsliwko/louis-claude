@@ -39,7 +39,9 @@ button:active{transform:scale(.97)}
 .hear.tap{animation:pulse .5s 2}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 .mic{width:100%;min-height:96px;font-family:var(--display);font-weight:700;font-size:22px;background:var(--accent);color:var(--card);border-color:var(--accent);display:flex;align-items:center;justify-content:center;gap:10px}
-.mic.live{background:var(--bad);border-color:var(--bad);animation:pulse 1s infinite}
+.mic{position:relative;overflow:hidden}
+.mbar{position:absolute;left:0;bottom:0;height:10px;width:0;background:var(--card);opacity:.85;border-radius:0 5px 5px 0}
+.mic.live{background:var(--bad);border-color:var(--bad)}
 @keyframes pulse{50%{transform:scale(1.03)}}
 .fb{min-height:32px;text-align:center;font-family:var(--display);font-weight:700;font-size:22px;margin:0}
 .fb.ok{color:var(--good)}.fb.no{color:var(--bad)}.fb.info{color:var(--soft);font-family:var(--body);font-weight:600;font-size:16px}
@@ -65,7 +67,7 @@ button:active{transform:scale(.97)}
     <button class="hear" id="hear" type="button" aria-label="Hear the word"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
   </div>
   <div id="ctrl" style="display:flex;flex-direction:column;gap:12px">
-    <button class="mic" id="mic" type="button" aria-label="Tap and say the word"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="micl" class="sr">Tap and say the word</span></button>
+    <button class="mic" id="mic" type="button" aria-label="Tap and say the word"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="micl" class="sr">Tap and say the word</span><span class="mbar" id="mbar" aria-hidden="true"></span></button>
     <p class="fb" id="fb" aria-live="polite"></p>
   </div>
 </div>
@@ -142,25 +144,36 @@ function wrong(m){if(busy)return;tries++;buzz();
 $('hear').onclick=function(){var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].w)};
 
 function norm(t){return t.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim()}
-function stopUI(){$('mic').classList.remove('live');$('micl').textContent='Tap and say the word'}
+var LISTEN=3500,listenTimer=null;
+function stopUI(){clearTimeout(listenTimer);var m=$('mic'),b=$('mbar');m.classList.remove('live');$('micl').textContent='Tap and say the word';
+  b.style.transition='none';b.style.width='0%'}
+function startUI(){var m=$('mic'),b=$('mbar');m.classList.add('live');$('micl').textContent='Listening…';
+  b.style.transition='none';b.style.width='100%';void b.offsetWidth;b.style.transition='width '+LISTEN+'ms linear';b.style.width='0%'}
 var NOMIC="The microphone isn't available in this browser.";
+function matches(x,t){var ws=t.split(/\s+/);return x.s.indexOf(t)>=0||(ws.length<=2&&ws.some(function(w){return x.s.indexOf(w)>=0}))}
 $('mic').onclick=function(){
   ac();if(busy)return;
   if(!SR){fb(NOMIC,'info');return}
   if(rec){try{rec.abort()}catch(e){}rec=null;stopUI();return}
-  try{rec=new SR();rec.lang='en-GB';rec.maxAlternatives=5;rec.interimResults=false;rec.continuous=false}catch(e){fb(NOMIC,'info');return}
-  var x=order[n],got=false;
-  rec.onresult=function(ev){got=true;var heard=[],ok=false;
-    for(var i=0;i<ev.results[0].length;i++){var t=norm(ev.results[0][i].transcript);heard.push(t);
-      var ws=t.split(/\s+/);if(x.s.indexOf(t)>=0||(ws.length<=2&&ws.some(function(w){return x.s.indexOf(w)>=0})))ok=true}
-    ok?right():wrong('I heard "'+(heard[0]||'?')+'". Please try again')};
-  rec.onerror=function(ev){got=true;stopUI();
+  try{rec=new SR();rec.lang='en-GB';rec.maxAlternatives=5;rec.interimResults=true;rec.continuous=false}catch(e){fb(NOMIC,'info');return}
+  var x=order[n],me=rec,decided=false,lastHeard='';
+  function decide(ok){if(decided)return;decided=true;clearTimeout(listenTimer);if(rec===me)rec=null;try{me.abort()}catch(e){}stopUI();
+    ok?right():(lastHeard?wrong('I heard "'+lastHeard+'". Please try again'):fb("I didn't hear anything. Try again!",'info'))}
+  rec.onresult=function(ev){
+    for(var r=ev.resultIndex;r<ev.results.length;r++){var res=ev.results[r];
+      for(var i=0;i<res.length;i++){var t=norm(res[i].transcript);if(!t)continue;if(i===0)lastHeard=t;if(matches(x,t)){decide(true);return}}
+      if(res.isFinal){decide(false);return}}};
+  rec.onerror=function(ev){if(decided)return;
+    if(ev.error==='aborted')return;
+    decided=true;if(rec===me)rec=null;stopUI();
     if(ev.error==='not-allowed'||ev.error==='service-not-allowed')fb("The microphone is blocked. Allow it in the browser settings.",'info');
     else if(ev.error==='no-speech')fb("I didn't hear anything. Try again!",'info');
     else fb("Couldn't listen just now. Tap the microphone again.",'info')};
-  rec.onend=function(){stopUI();rec=null;if(!got)fb("I didn't hear anything. Try again!",'info')};
+  rec.onend=function(){if(rec===me)rec=null;if(!decided)decide(false)};
   try{speechSynthesis.cancel()}catch(e){}
-  try{rec.start();$('mic').classList.add('live');$('micl').textContent='Listening…';fb('')}catch(e){stopUI();fb(NOMIC,'info')}
+  try{rec.start();startUI();fb('');
+    listenTimer=setTimeout(function(){try{me.stop()}catch(e){}setTimeout(function(){decide(false)},600)},LISTEN)}
+  catch(e){rec=null;stopUI();fb(NOMIC,'info')}
 };
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score>=L-1?3:score>=Math.ceil(L*0.6)?2:1,s='';for(var i=0;i<3;i++)s+=i<st?'<span>★</span>':'<span class="off">★</span>';
