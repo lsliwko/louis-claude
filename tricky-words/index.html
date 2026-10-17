@@ -73,7 +73,7 @@ button:active{transform:scale(.97)}
 </div>
 <script>
 var W=[
-{w:"I",s:["i","eye","aye","ay"]},
+{w:"I",sp:"eye",s:["i","eye","aye","ay"]},
 {w:"be",s:["be","bee","b"]},
 {w:"me",s:["me","mi"]},
 {w:"we",s:["we","wee","wii"]},
@@ -141,7 +141,7 @@ function wrong(m){if(busy)return;tries++;buzz();
   if(tries>=4){busy=true;fb("Let's try the next one",'info');setTimeout(function(){say("Let's try the next one")},850);
     setTimeout(function(){n++;n<order.length?show():end()},3000);return}
   fb(m||'Please try again','no');setTimeout(function(){say('Please try again')},850)}
-$('hear').onclick=function(){var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].w)};
+$('hear').onclick=function(){var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].sp||order[n].w)};
 
 function norm(t){return t.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim()}
 var LISTEN=3500,listenTimer=null;
