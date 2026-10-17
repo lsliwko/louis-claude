@@ -134,11 +134,14 @@ function explode(p){boom();flashes.push({x:p.x,y:p.y,life:0});
   else{for(i=0;i<100;i++){a=Math.random()*Math.PI*2;v=1.5+Math.random()*4.8;spark(p.x,p.y,Math.cos(a)*v,Math.sin(a)*v,i%3?c1:c2,{max:60+Math.random()*35,tw:i%4===0})}}}
 function rocket(type){var w=innerWidth,h=innerHeight,x=w*(0.15+Math.random()*0.7),ty=h*(0.12+Math.random()*0.3);
   var vy=-Math.sqrt(2*0.12*(h-ty))*0.98;parts.push({kind:'rocket',x:x,y:h+10,px:x,py:h+10,vx:(Math.random()-0.5)*1.2,vy:vy,c:pick(COLS),type:type,life:0,max:999});loop()}
+var fwTimers=[];
+function clearFx(){fwTimers.forEach(clearTimeout);fwTimers=[];parts.length=0;flashes.length=0;fctx.clearRect(0,0,innerWidth,innerHeight)}
+document.addEventListener('pointerdown',function(e){if(e.target&&e.target.closest&&e.target.closest('button,a'))clearFx()},true);
 function loop(){if(!running){running=true;requestAnimationFrame(tick)}}
 function fireworks(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   sizeFx();var seq=['sphere','ring','willow','heart','crackle','sphere','ring','willow'];
-  seq.forEach(function(t,i){setTimeout(function(){rocket(t)},i*330)});
-  setTimeout(function(){rocket('sphere');rocket('ring')},2800);
+  seq.forEach(function(t,i){fwTimers.push(setTimeout(function(){rocket(t)},i*330))});
+  fwTimers.push(setTimeout(function(){rocket('sphere');rocket('ring')},2800));
 }
 function tick(){fctx.clearRect(0,0,innerWidth,innerHeight);fctx.lineCap='round';
   for(var f=flashes.length-1;f>=0;f--){var fl=flashes[f];fl.life++;if(fl.life>10){flashes.splice(f,1);continue}
