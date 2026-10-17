@@ -64,11 +64,6 @@ button:active{transform:scale(.97)}
   <div id="ctrl" style="display:flex;flex-direction:column;gap:12px">
     <button class="mic" id="mic" type="button" aria-label="Tap and say the word"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="micl" class="sr">Tap and say the word</span></button>
     <p class="fb" id="fb" aria-live="polite"></p>
-    <p class="label">Grown-up: mark it yourself</p>
-    <div class="marks">
-      <button class="yes" id="yes" type="button">✓ Said it right</button>
-      <button class="no" id="no" type="button">↻ Try again</button>
-    </div>
   </div>
 </div>
 <script>
@@ -128,12 +123,15 @@ function show(){var x=order[n];tries=0;busy=false;
 function right(){if(busy)return;busy=true;if(tries===0){score++;$('score').textContent=score}
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();setTimeout(function(){n++;n<order.length?show():end()},2600)}
-function wrong(m){tries++;fb(m||'Please try again','no');setTimeout(function(){say('Please try again')},250)}
+function wrong(m){if(busy)return;tries++;
+  if(tries>=4){busy=true;fb("Let's try the next one",'info');setTimeout(function(){say("Let's try the next one")},250);
+    setTimeout(function(){n++;n<order.length?show():end()},2400);return}
+  fb(m||'Please try again','no');setTimeout(function(){say('Please try again')},250)}
 $('hear').onclick=function(){say(order[n].w)};
-$('yes').onclick=right;$('no').onclick=function(){if(!busy)wrong()};
+
 function norm(t){return t.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim()}
 function stopUI(){$('mic').classList.remove('live');$('micl').textContent='Tap and say the word'}
-var NOMIC="The microphone isn't available here. Use the buttons below.";
+var NOMIC="The microphone isn't available in this browser.";
 $('mic').onclick=function(){
   ac();if(busy)return;
   if(!SR){fb(NOMIC,'info');return}
@@ -145,9 +143,9 @@ $('mic').onclick=function(){
       var ws=t.split(/\s+/);if(x.s.indexOf(t)>=0||(ws.length<=2&&ws.some(function(w){return x.s.indexOf(w)>=0})))ok=true}
     ok?right():wrong('I heard "'+(heard[0]||'?')+'". Please try again')};
   rec.onerror=function(ev){got=true;stopUI();
-    if(ev.error==='not-allowed'||ev.error==='service-not-allowed')fb("The microphone isn't allowed here. Use the buttons below.",'info');
+    if(ev.error==='not-allowed'||ev.error==='service-not-allowed')fb("The microphone is blocked. Allow it in the browser settings.",'info');
     else if(ev.error==='no-speech')fb("I didn't hear anything. Try again!",'info');
-    else fb("Couldn't listen just now. Try again or use the buttons.",'info')};
+    else fb("Couldn't listen just now. Tap the microphone again.",'info')};
   rec.onend=function(){stopUI();rec=null;if(!got)fb("I didn't hear anything. Try again!",'info')};
   try{speechSynthesis.cancel()}catch(e){}
   try{rec.start();$('mic').classList.add('live');$('micl').textContent='Listening…';fb('')}catch(e){stopUI();fb(NOMIC,'info')}
