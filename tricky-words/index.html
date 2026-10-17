@@ -144,7 +144,7 @@ function wrong(m){if(busy)return;tries++;buzz();
 $('hear').onclick=function(){var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].sp||order[n].w)};
 
 function norm(t){return t.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim()}
-var LISTEN=3500,listenTimer=null;
+var LISTEN=4500,listenTimer=null;
 function stopUI(){clearTimeout(listenTimer);var m=$('mic'),b=$('mbar');m.classList.remove('live');$('micl').textContent='Tap and say the word';
   b.style.transition='none';b.style.width='0%'}
 function startUI(){var m=$('mic'),b=$('mbar');m.classList.add('live');$('micl').textContent='Listening…';
