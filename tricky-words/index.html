@@ -144,7 +144,7 @@ function mark(ok){res[n]=ok?'ok':'miss';drawStars();var el=$('stars').children[n
 function show(){var x=order[n];tries=0;busy=false;
   $('prog').textContent='Word '+(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';
   $('word').textContent=x.w;fb('')}
-function right(){if(busy)return;busy=true;if(tries===0)score++;mark(tries===0);
+function right(){if(busy)return;busy=true;score++;mark(true);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();setTimeout(function(){n++;n<order.length?show():end()},2600)}
 function wrong(m){if(busy)return;tries++;buzz();
@@ -188,7 +188,7 @@ $('mic').onclick=function(){
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
   $('card').className='card end';
-  $('card').innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' first time!</h2><p class="ex">'+(st===L?'Amazing talking.':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="mic" style="margin-top:8px" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';
+  $('card').innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' words!</h2><p class="ex">'+(st===L?'Amazing talking.':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="mic" style="margin-top:8px" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';
   $('ctrl').innerHTML='';
   $('again').onclick=function(){location.reload()};
   say('All done! Well done!')}
