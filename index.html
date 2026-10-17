@@ -47,10 +47,12 @@ button:active{transform:scale(.97)}
 .end-stars{font-size:56px;color:var(--star);letter-spacing:6px;line-height:1}
 .end-stars span.off{color:var(--line)}
 .end h2{font-family:var(--display);font-size:30px;margin:0;text-wrap:balance}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
+<canvas id="fx" aria-hidden="true"></canvas>
 <div class="wrap">
   <div class="top"><span id="prog">Word 1 of 8</span><span class="stars">★ <span id="score">0</span></span></div>
   <div class="bar"><i id="bar"></i></div>
@@ -80,6 +82,41 @@ var W=[
 {w:"was",s:["was","woz","wuz"]}
 ];
 function $(id){return document.getElementById(id)}
+var AC=null;
+function ac(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}return AC}
+document.addEventListener('pointerdown',ac);
+function noiseBuf(c,sec){var b=c.createBuffer(1,Math.floor(c.sampleRate*sec),c.sampleRate),d=b.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b}
+function cheer(){var c=ac();if(!c)return;var t=c.currentTime+0.05,out=c.createGain();out.gain.value=0.9;out.connect(c.destination);
+  [523.25,659.25,783.99,1046.5].forEach(function(f,i){var o=c.createOscillator(),g=c.createGain(),st=t+i*0.12,len=i===3?0.6:0.16;
+    o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(0.28,st+0.02);g.gain.exponentialRampToValueAtTime(0.001,st+len);
+    o.connect(g);g.connect(out);o.start(st);o.stop(st+len+0.05)});
+  var crowd=c.createBufferSource();crowd.buffer=noiseBuf(c,2.2);
+  var bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1100;bp.Q.value=0.7;
+  var cg=c.createGain();cg.gain.setValueAtTime(0,t);cg.gain.linearRampToValueAtTime(0.22,t+0.35);cg.gain.setValueAtTime(0.22,t+1.3);cg.gain.linearRampToValueAtTime(0,t+2.1);
+  crowd.connect(bp);bp.connect(cg);cg.connect(out);crowd.start(t);crowd.stop(t+2.2);
+  var clapBuf=noiseBuf(c,0.08);
+  for(var k=0;k<22;k++){var ct=t+0.1+Math.random()*1.6,cs=c.createBufferSource(),hp=c.createBiquadFilter(),g2=c.createGain();
+    cs.buffer=clapBuf;hp.type='highpass';hp.frequency.value=900+Math.random()*800;
+    g2.gain.setValueAtTime(0.35,ct);g2.gain.exponentialRampToValueAtTime(0.001,ct+0.07);
+    cs.connect(hp);hp.connect(g2);g2.connect(out);cs.start(ct);cs.stop(ct+0.08)}
+}
+var fx=document.getElementById('fx'),fctx=fx.getContext('2d'),parts=[],running=false,
+  COLS=['#FF5A5F','#FFC145','#3DDC97','#4CC9F0','#B388FF','#FF8FD8','#FFFFFF'];
+function sizeFx(){var r=window.devicePixelRatio||1;fx.width=innerWidth*r;fx.height=innerHeight*r;fctx.setTransform(r,0,0,r,0,0)}
+function burst(x,y){var col=COLS[Math.floor(Math.random()*COLS.length)],col2=COLS[Math.floor(Math.random()*COLS.length)];
+  for(var i=0;i<60;i++){var a=Math.random()*Math.PI*2,v=1.5+Math.random()*4.5;
+    parts.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0,max:55+Math.random()*35,c:i%3?col:col2,r:2+Math.random()*2})}}
+function fireworks(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  sizeFx();var w=innerWidth,h=innerHeight;
+  [0,280,560,840].forEach(function(d){setTimeout(function(){burst(w*(0.2+Math.random()*0.6),h*(0.15+Math.random()*0.35))},d)});
+  if(!running){running=true;requestAnimationFrame(tick)}}
+function tick(){fctx.clearRect(0,0,fx.width,fx.height);
+  for(var i=parts.length-1;i>=0;i--){var p=parts[i];p.life++;p.vx*=0.98;p.vy=p.vy*0.98+0.06;p.x+=p.vx;p.y+=p.vy;
+    if(p.life>p.max){parts.splice(i,1);continue}
+    fctx.globalAlpha=1-p.life/p.max;fctx.fillStyle=p.c;fctx.beginPath();fctx.arc(p.x,p.y,p.r,0,Math.PI*2);fctx.fill()}
+  fctx.globalAlpha=1;
+  if(parts.length)requestAnimationFrame(tick);else{running=false;fctx.clearRect(0,0,fx.width,fx.height)}}
+
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 var order=shuf(W),n=0,score=0,tries=0,busy=false,rec=null,SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function say(t){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=0.8;speechSynthesis.speak(u)}catch(e){}}
@@ -89,15 +126,15 @@ function show(){var x=order[n];tries=0;busy=false;
   $('word').textContent=x.w;fb('')}
 function right(){if(busy)return;busy=true;if(tries===0){score++;$('score').textContent=score}
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
-  say('Yes! '+order[n].w);setTimeout(function(){n++;n<order.length?show():end()},1400)}
-function wrong(m){tries++;fb(m||'Not quite. Listen and try again!','no');setTimeout(function(){say(order[n].w)},400)}
+  try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();setTimeout(function(){n++;n<order.length?show():end()},2600)}
+function wrong(m){tries++;fb(m||'Please try again','no');setTimeout(function(){say('Please try again')},250)}
 $('hear').onclick=function(){say(order[n].w)};
 $('yes').onclick=right;$('no').onclick=function(){if(!busy)wrong()};
 function norm(t){return t.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim()}
 function stopUI(){$('mic').classList.remove('live');$('micl').textContent='Tap and say the word'}
 var NOMIC="The microphone isn't available here. Use the buttons below.";
 $('mic').onclick=function(){
-  if(busy)return;
+  ac();if(busy)return;
   if(!SR){fb(NOMIC,'info');return}
   if(rec){try{rec.abort()}catch(e){}rec=null;stopUI();return}
   try{rec=new SR();rec.lang='en-GB';rec.maxAlternatives=5;rec.interimResults=false;rec.continuous=false}catch(e){fb(NOMIC,'info');return}
@@ -105,7 +142,7 @@ $('mic').onclick=function(){
   rec.onresult=function(ev){got=true;var heard=[],ok=false;
     for(var i=0;i<ev.results[0].length;i++){var t=norm(ev.results[0][i].transcript);heard.push(t);
       var ws=t.split(/\s+/);if(x.s.indexOf(t)>=0||(ws.length<=2&&ws.some(function(w){return x.s.indexOf(w)>=0})))ok=true}
-    ok?right():wrong('I heard "'+(heard[0]||'?')+'". Try again!')};
+    ok?right():wrong('I heard "'+(heard[0]||'?')+'". Please try again')};
   rec.onerror=function(ev){got=true;stopUI();
     if(ev.error==='not-allowed'||ev.error==='service-not-allowed')fb("The microphone isn't allowed here. Use the buttons below.",'info');
     else if(ev.error==='no-speech')fb("I didn't hear anything. Try again!",'info');
