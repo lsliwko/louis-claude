@@ -17,6 +17,7 @@ The repo is public: never put the child's name in files, commit messages or page
 - `index.html` at the root is the **menu**: a 2-column grid of big picture tiles, one per game, plus an HTML comment showing how to add a tile.
 - Each game lives in **its own folder** with its own `index.html`, e.g. `tricky-words/`. Use a short kebab-case folder name that matches the game's display name ("Tricky Words" → `tricky-words/`).
 - `README.md` lists the layout and has one line per game. Update it whenever a game is added or its rules change.
+- `AGENTS.md` gives other coding agents the repo rules and points them to this skill. This file is the repo copy of the skill; keep it in step with the copy saved in the Claude account.
 - `tricky-words/index.html` is the **reference implementation**. When building a new game, copy the shared pieces from it (tokens, fonts, sounds, fireworks, stars, speech, microphone handling) instead of rewriting them.
 
 ## Adding a new game
