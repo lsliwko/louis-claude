@@ -1,6 +1,6 @@
 ---
 name: "kids-mini-games"
-description: "Build or change a learning mini-game for Louis (age 5, can't read yet) in the lsliwko/louis-claude GitHub Pages site, including adding it to the games menu."
+description: "Build or change a learning mini-game for a 5-year-old who can't read yet, in the lsliwko/louis-claude GitHub Pages site, including adding it to the games menu."
 ---
 
 # Kids mini-games (lsliwko/louis-claude)

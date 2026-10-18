@@ -1,6 +1,6 @@
 # Agent instructions
 
-This repo is a small set of learning games for Louis, a 5-year-old who can't read yet. He plays them on an iPhone in Chrome. The site is published with GitHub Pages from the `main` branch at https://lsliwko.github.io/louis-claude/
+This repo is a small set of learning games for a 5-year-old who can't read yet. He plays them on an iPhone in Chrome. The site is published with GitHub Pages from the `main` branch at https://lsliwko.github.io/louis-claude/
 
 ## Before you change anything
 
