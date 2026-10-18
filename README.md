@@ -15,4 +15,4 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 
 ## Games
 
-- `tricky-words/`: Tricky Words. A word is shown, the child taps the microphone and says it. A right answer plays cheering and fireworks; a wrong one asks to try again, and after four tries the game moves on. Each round is 5 words picked at random, with a gold star for each word said right within four tries and a grey star for each one missed.
+- `tricky-words/`: Tricky Words. A word is shown, the child taps the microphone and says it. A right answer plays cheering and fireworks; a wrong one asks to try again, and after four tries the game moves on. Each round is 5 words picked at random, with a gold star for each word said right within four tries and a grey star for each one missed. Words he gets wrong on the first try come up more often in later rounds; this is remembered in the browser on that phone.
