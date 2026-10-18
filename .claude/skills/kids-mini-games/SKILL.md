@@ -5,7 +5,11 @@ description: "Build or change a learning mini-game for a 5-year-old who can't re
 
 # Kids mini-games (lsliwko/louis-claude)
 
-Small learning games for a 5-year-old who can't read yet, played on an iPhone in Chrome. They're hosted with GitHub Pages at https://lsliwko.github.io/louis-claude/
+Small learning games for a 5-year-old who can't read yet, played on an iPhone in Chrome (and sometimes Safari). They're hosted with GitHub Pages at https://lsliwko.github.io/louis-claude/
+
+The repo is public: never put the child's name in files, commit messages or page text.
+
+**Everything is British English:** spoken voice, speech recognition, page language (`<html lang="en-GB">`) and spelling in any text.
 
 ## Where things live
 
@@ -39,8 +43,8 @@ Small learning games for a 5-year-old who can't read yet, played on an iPhone in
 
 ## Speech and microphone (iPhone Chrome = Safari's WebKit underneath)
 
-- **Text-to-speech:** pick an `en-GB` voice explicitly (fall back to any `en`), rate 0.8. Don't call `cancel()` and `speak()` in the same instant: if something is speaking, cancel it and speak after about 120ms. Give words that TTS misreads a spoken form, e.g. `{w:"I", sp:"eye"}` (a lone "I" is otherwise read as "capital I").
-- **Speech recognition** (`webkitSpeechRecognition`, `en-GB`, `interimResults: true`, `maxAlternatives: 5`):
+- **Text-to-speech:** British English only. Pick an `en-GB` voice explicitly, preferring Enhanced/Premium UK voices (Daniel, Kate, Serena, Arthur, Martha). **Never fall back to a US or other English voice**: if no `en-GB` voice is listed yet, set no voice and `utterance.lang = 'en-GB'`, and re-check the voice list at speak time (it loads late on iPhone). Rate 0.8. Don't call `cancel()` and `speak()` in the same instant: if something is speaking, cancel it and speak after about 120ms. Give words that TTS misreads a spoken form, e.g. `{w:"I", sp:"eye"}` (a lone "I" is otherwise read as "capital I").
+- **Speech recognition** (`webkitSpeechRecognition`, `lang = 'en-GB'`, `interimResults: true`, `maxAlternatives: 5`):
   - Before every listen, wait for the previous recognizer to end fully, then create a **new** one.
   - Show a pulsing yellow "getting ready" state, and switch to red "listening" only on `audiostart`/`soundstart`. Start the timer then.
   - Listen for **4.5 seconds**, shown as a white bar draining along the bottom of the mic button.
@@ -51,7 +55,7 @@ Small learning games for a 5-year-old who can't read yet, played on an iPhone in
 - **Disable the speaker button** while the mic is getting ready or listening.
 - **Tap lock:** speaker, mic and replay buttons ignore repeat taps for 0.5s.
 - **Never reload the page to restart** (`location.reload()` leaves the iPhone mic stuck until Chrome restarts). Reset the round in place. On `pagehide`, abort recognition, cancel speech and close the AudioContext.
-- Request the mic with `getUserMedia` once per session on load (tracks stopped right away) so the parent can allow it up front.
+- **Ask for permissions up front, on page load,** so the parent can allow them before handing over the phone: first `getUserMedia({audio:true})` (stop the tracks straight away), then a short "warm-up" `SpeechRecognition` that is aborted as soon as it starts. Safari shows a separate speech-recognition prompt, and only starting a recognizer triggers it. When the child first taps the mic, abort any warm-up still running and wait for it to end (at most about 0.8s) before starting the real listener.
 - Sounds only play after a user gesture, so create or resume the AudioContext inside the mic button's click handler.
 
 ## Testing (in the workspace, before pushing)

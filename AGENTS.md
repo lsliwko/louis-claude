@@ -15,6 +15,7 @@ Read `.claude/skills/kids-mini-games/SKILL.md` first. It holds the rules for eve
 
 ## Working rules
 
+- British English everywhere: spoken voice and speech recognition use `en-GB` only (never fall back to a US voice), and pages are marked `lang="en-GB"`.
 - Plain HTML, CSS and JavaScript only: no build step, no frameworks, and no external assets apart from Google Fonts.
 - Never reload the page to restart a game; reset the round in place (reloading leaves the iPhone microphone stuck).
 - Test in a headless browser with a simulated speech recognizer before pushing, and say plainly what couldn't be tested on a real phone.
