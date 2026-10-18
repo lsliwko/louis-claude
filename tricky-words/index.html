@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -175,10 +175,13 @@ function pickRound(k){var pool=W.slice(),out=[];
     while(r>=ws[i]){r-=ws[i];i++}out.push(pool.splice(i,1)[0])}return out}
 var ROUND=5,order=pickRound(ROUND),n=0,score=0,tries=0,busy=false,rec=null,SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 var VOICE=null,UTT=null;
-function pickVoice(){try{var vs=speechSynthesis.getVoices()||[];VOICE=vs.filter(function(v){return /^en[-_]GB/i.test(v.lang)})[0]||vs.filter(function(v){return /^en/i.test(v.lang)})[0]||null}catch(e){}}
+function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(function(v){return /^en[-_]GB/i.test(v.lang)});
+  var rank=function(v){var nm=v.name||'';return (/premium|enhanced|neural|natural/i.test(nm)?0:1)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
+  vs.sort(function(a,b){return rank(a)-rank(b)});VOICE=vs[0]||null}catch(e){}}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 function say(t){try{var ss=window.speechSynthesis;if(!ss)return;
-  var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang=VOICE?VOICE.lang:'en-GB';UTT.rate=0.8;UTT.volume=1;ss.resume();ss.speak(UTT)}catch(e){}};
+  if(!VOICE)pickVoice();
+  var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;ss.resume();ss.speak(UTT)}catch(e){}};
   if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120)}else go()}catch(e){}}
 function fb(t,k){var f=$('fb');f.textContent=t;f.className='fb'+(k?' '+k:'')}
 var STAR='<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/>',res=[];
