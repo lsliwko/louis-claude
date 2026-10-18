@@ -1,0 +1,69 @@
+---
+name: "kids-mini-games"
+description: "Build or change a learning mini-game for Louis (age 5, can't read yet) in the lsliwko/louis-claude GitHub Pages site, including adding it to the games menu."
+---
+
+# Kids mini-games (lsliwko/louis-claude)
+
+Small learning games for a 5-year-old who can't read yet, played on an iPhone in Chrome. They're hosted with GitHub Pages at https://lsliwko.github.io/louis-claude/
+
+## Where things live
+
+- Repo: `lsliwko/louis-claude`, branch `main`. Attach it with `add_repo` (access `push`), clone it, and push straight to `main`. GitHub Pages serves `main` from the root.
+- `index.html` at the root is the **menu**: a 2-column grid of big picture tiles, one per game, plus an HTML comment showing how to add a tile.
+- Each game lives in **its own folder** with its own `index.html`, e.g. `tricky-words/`. Use a short kebab-case folder name that matches the game's display name ("Tricky Words" → `tricky-words/`).
+- `README.md` lists the layout and has one line per game. Update it whenever a game is added or its rules change.
+- `tricky-words/index.html` is the **reference implementation**. When building a new game, copy the shared pieces from it (tokens, fonts, sounds, fireworks, stars, speech, microphone handling) instead of rewriting them.
+
+## Adding a new game
+
+1. Create `<folder>/index.html` as one self-contained file: inline CSS and JS, Google Fonts only, no other external assets.
+2. Put a round **house button** in the top-left that links to `../`.
+3. Add a tile to the root `index.html`: copy the existing `<a class="tile">`, change `href`, `aria-label`, the icon SVG and the name. Each game gets its own tile colour pair (add `--t2`/`--t2-bg` etc. tokens in all three theme blocks).
+4. Add the game to `README.md`.
+5. Test it (see Testing), commit, push, then tell the user it'll be live in a few minutes and to close and reopen the tab.
+
+## Design rules (the user has asked for all of these)
+
+- **Assume the child can't read.** Everything he uses is an icon: microphone, speaker, circular-arrow replay, house. Put text only in `aria-label` or a visually hidden `.sr` span. Any message he needs is also **spoken aloud**.
+- **Large tap targets.** The main action button is full width and about 96px tall. The speaker button is a 72px circle.
+- **Look:** fonts "Baloo 2" (display) and "Nunito" (body). Soft blue "playground" palette, defined as tokens on `:root` with dark-mode overrides under `prefers-color-scheme` and `[data-theme=dark]`. Reuse the token block from `tricky-words`.
+- **One question at a time:** a big word or prompt in a white card, a speaker button that says it, and a progress bar.
+- **Stars:** a row in the top-right that **grows as he goes**, adding one star per finished question. **Gold** = got it right within the allowed tries; **grey** = ran out of tries. The end screen repeats the row with "N of 5 words!" and a replay button.
+- **Round length:** 5 questions.
+- **Tries:** after a wrong answer, play the "wah-wah" buzz, say "Please try again" and **stay on the same question**. After the **4th** wrong try, say "Let's try the next one", give a grey star and move on.
+- **Right answer:** play the cheering sound (trumpet arpeggio, crowd and claps via Web Audio) plus a **fireworks show of about 4 seconds** (rockets with trails; sphere, ring, heart, willow and crackle bursts; a soft boom per burst). Move to the next question only **after the fireworks have finished**. Pressing any button clears the fireworks straight away.
+- **Perfect round:** say "Five stars! You are winning!" and show "FIVE stars! You are winning!".
+- **Adaptive practice:** remember items missed on the first try in `localStorage` (try/catch around every access) and pick them more often (weight `1 + 2 × misses`, capped at 5 misses). A first-try success lowers the count by one. Pick the 5 questions without repeats.
+- **No grown-up controls** on the play screen.
+
+## Speech and microphone (iPhone Chrome = Safari's WebKit underneath)
+
+- **Text-to-speech:** pick an `en-GB` voice explicitly (fall back to any `en`), rate 0.8. Don't call `cancel()` and `speak()` in the same instant: if something is speaking, cancel it and speak after about 120ms. Give words that TTS misreads a spoken form, e.g. `{w:"I", sp:"eye"}` (a lone "I" is otherwise read as "capital I").
+- **Speech recognition** (`webkitSpeechRecognition`, `en-GB`, `interimResults: true`, `maxAlternatives: 5`):
+  - Before every listen, wait for the previous recognizer to end fully, then create a **new** one.
+  - Show a pulsing yellow "getting ready" state, and switch to red "listening" only on `audiostart`/`soundstart`. Start the timer then.
+  - Listen for **4.5 seconds**, shown as a white bar draining along the bottom of the mic button.
+  - If audio hasn't started within 1.5s, silently retry once.
+  - Accept a right answer as soon as any interim result matches.
+  - If nothing is heard, say "I didn't hear you. Please try again" without counting it as a wrong try.
+- **Matching is forgiving:** give each word a list of sound-alikes (e.g. `was` → horse, what, wars, does, oz). Also accept: one-letter-away matches for words of 3 or more letters (unless that's another game word); repeated letters collapsed ("bbbbb" → "b"); repeats of an accepted form ("bebe", "be be be"); and phrases of up to 2 distinct words containing a match. Never accept another word that's in the game.
+- **Disable the speaker button** while the mic is getting ready or listening.
+- **Tap lock:** speaker, mic and replay buttons ignore repeat taps for 0.5s.
+- **Never reload the page to restart** (`location.reload()` leaves the iPhone mic stuck until Chrome restarts). Reset the round in place. On `pagehide`, abort recognition, cancel speech and close the AudioContext.
+- Request the mic with `getUserMedia` once per session on load (tracks stopped right away) so the parent can allow it up front.
+- Sounds only play after a user gesture, so create or resume the AudioContext inside the mic button's click handler.
+
+## Testing (in the workspace, before pushing)
+
+- Syntax check: `node -e` with `new Function(<script body>)`.
+- Use Playwright (Chromium is pre-installed) with a **fake `SpeechRecognition`** injected via `add_init_script`. It should fire `onaudiostart`/`onresult`/`onend` according to a queued plan, so you can test right, wrong, silence and the auto-retry.
+- Call `right()` directly to time the fireworks and screenshot them, and check the next question appears after the show.
+- Unit-test the matching function against the reported mishearings.
+- Speech recognition can't really be tested here: say so, and ask the user to try it on the phone.
+
+## Working with the user
+
+- The user tests on the phone and sends short change requests. Make the change, test it, push, and reply with a short note of what changed and that it'll be live in a few minutes (close and reopen the tab).
+- Commit messages are plain and describe the change. Use the session's attribution trailer if one is given.
+- If the user reports a word being misheard, add the misheard form to that word's sound-alike list.
