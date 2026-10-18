@@ -128,7 +128,7 @@ function explode(p){boom();flashes.push({x:p.x,y:p.y,life:0});
   var type=p.type,c1=p.c,c2=pick(COLS),i,a,v;
   if(type==='ring'){for(i=0;i<56;i++){a=i/56*Math.PI*2;v=4.2;spark(p.x,p.y,Math.cos(a)*v,Math.sin(a)*v,i%2?c1:c2,{max:70})}
     for(i=0;i<28;i++){a=i/28*Math.PI*2;v=2.2;spark(p.x,p.y,Math.cos(a)*v,Math.sin(a)*v,'#FFFFFF',{max:55,r:1.8})}}
-  else if(type==='willow'){for(i=0;i<90;i++){a=Math.random()*Math.PI*2;v=1+Math.random()*3.6;spark(p.x,p.y,Math.cos(a)*v,Math.sin(a)*v,'#FFC145',{max:80,drag:0.98,grav:0.04,r:1.8,tw:true})}}
+  else if(type==='willow'){for(i=0;i<90;i++){a=Math.random()*Math.PI*2;v=1+Math.random()*3.6;spark(p.x,p.y,Math.cos(a)*v,Math.sin(a)*v,'#FFC145',{max:90,drag:0.98,grav:0.04,r:1.8,tw:true})}}
   else if(type==='heart'){for(i=0;i<70;i++){var tt=i/70*Math.PI*2,hx=16*Math.pow(Math.sin(tt),3),hy=-(13*Math.cos(tt)-5*Math.cos(2*tt)-2*Math.cos(3*tt)-Math.cos(4*tt));
     spark(p.x,p.y,hx*0.26,hy*0.26,'#FF5A9E',{max:65,drag:0.97,grav:0.025,r:2.4})}}
   else if(type==='crackle'){for(i=0;i<50;i++){a=Math.random()*Math.PI*2;v=2+Math.random()*3.5;spark(p.x,p.y,Math.cos(a)*v,Math.sin(a)*v,c1,{max:45+Math.random()*20,crackle:true})}}
@@ -143,7 +143,7 @@ function clearFx(){fwTimers.forEach(clearTimeout);fwTimers=[];parts.length=0;fla
 document.addEventListener('pointerdown',function(e){if(e.target&&e.target.closest&&e.target.closest('button,a'))clearFx()},true);
 function loop(){if(!running){running=true;requestAnimationFrame(tick)}}
 function fireworks(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  sizeFx();var seq=['sphere','ring','heart','willow','crackle'];
+  sizeFx();var seq=['sphere','ring','heart','willow','crackle','sphere','ring'];
   seq.forEach(function(t,i){fwLater(function(){rocket(t)},i*250)});
 }
 function tick(){fctx.clearRect(0,0,innerWidth,innerHeight);fctx.lineCap='round';
