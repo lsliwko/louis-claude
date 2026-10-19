@@ -233,8 +233,6 @@ function listen(attempt){
   micState='prep';readyUI();fb('');
   try{speechSynthesis.cancel()}catch(e){}
   var x=order[n];
-  if(warm){var wp=warm.endP;try{warm.obj.abort()}catch(e){}warm=null;
-    prevEnd=Promise.race([wp,new Promise(function(r){setTimeout(r,800)})]).then(function(){return new Promise(function(r){setTimeout(r,250)})})}
   prevEnd.then(function(){setTimeout(function(){if(micState!=='prep'||busy){if(!busy){micState='idle';stopUI()}return}run(x,attempt)},attempt?400:300)})
 }
 function run(x,attempt){
@@ -275,21 +273,11 @@ function end(){$('bar').style.width='100%';$('prog').textContent='All done';
 function restart(){try{if(cancelCur)cancelCur()}catch(e){}try{speechSynthesis.cancel()}catch(e){}
   order=pickRound(ROUND);n=0;score=0;res=[];tries=0;busy=false;drawStars();
   $('endcard').hidden=true;$('endcard').innerHTML='';$('card').hidden=false;$('ctrl').hidden=false;show()}
-window.addEventListener('pagehide',function(){try{if(cancelCur)cancelCur()}catch(e){}try{if(rec)rec.abort()}catch(e){}try{if(warm)warm.obj.abort()}catch(e){}
+window.addEventListener('pagehide',function(){try{if(cancelCur)cancelCur()}catch(e){}try{if(rec)rec.abort()}catch(e){}
   try{speechSynthesis.cancel()}catch(e){}try{if(AC)AC.close()}catch(e){}});
-var warm=null;
-function warmSpeech(){if(!SR||warm||micState!=='idle')return;var w,fin;
-  try{w=new SR();w.lang='en-GB';w.continuous=false;w.interimResults=false}catch(e){return}
-  var endP=new Promise(function(r){fin=r});warm={obj:w,endP:endP};
-  var stopIt=function(){try{w.abort()}catch(e){}};
-  w.onstart=stopIt;w.onaudiostart=stopIt;w.onresult=function(){};w.onerror=function(){};
-  w.onend=function(){if(warm&&warm.obj===w)warm=null;fin()};
-  setTimeout(function(){if(warm&&warm.obj===w){stopIt();setTimeout(function(){if(warm&&warm.obj===w){warm=null;fin()}},800)}},15000);
-  try{w.start()}catch(e){warm=null;fin()}}
-function preAskMic(){try{if(!SR)return;
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){warmSpeech();return}
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){st.getTracks().forEach(function(t){t.stop()});setTimeout(warmSpeech,300)})
-    .catch(function(){setTimeout(warmSpeech,300)})}catch(e){}}
+function preAskMic(){try{if(!SR||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return;
+  try{if(sessionStorage.getItem('micAsked'))return;sessionStorage.setItem('micAsked','1')}catch(e){}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){st.getTracks().forEach(function(t){t.stop()})}).catch(function(){})}catch(e){}}
 drawStars();show();preAskMic();
 </script>
 </body>

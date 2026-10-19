@@ -56,7 +56,7 @@ The repo is public: never put the child's name in files, commit messages or page
 - **Disable the speaker button** while the mic is getting ready or listening.
 - **Tap lock:** speaker, mic and replay buttons ignore repeat taps for 0.5s.
 - **Never reload the page to restart** (`location.reload()` leaves the iPhone mic stuck until Chrome restarts). Reset the round in place. On `pagehide`, abort recognition, cancel speech and close the AudioContext.
-- **Ask for permissions up front, on page load,** so the parent can allow them before handing over the phone: first `getUserMedia({audio:true})` (stop the tracks straight away), then a short "warm-up" `SpeechRecognition` that is aborted as soon as it starts. Safari shows a separate speech-recognition prompt, and only starting a recognizer triggers it. When the child first taps the mic, abort any warm-up still running and wait for it to end (at most about 0.8s) before starting the real listener.
+- Request the mic with `getUserMedia` once per session on load (tracks stopped right away) so the parent can allow it up front. **Do not start a SpeechRecognition on page load** (a load-time "warm-up" recognizer to trigger Safari's speech prompt early broke the microphone on iPhone in both Chrome and Safari). Safari's speech prompt therefore appears on the first mic tap.
 - Sounds only play after a user gesture, so create or resume the AudioContext inside the mic button's click handler.
 
 ## Testing (in the workspace, before pushing)
