@@ -54,7 +54,7 @@ The repo is public: never put the child's name in files, commit messages or page
   - If nothing is heard, say "I didn't hear you. Please try again" without counting it as a wrong try.
 - **Matching is forgiving:** give each word a list of sound-alikes (e.g. `was` → horse, what, wars, does, oz). Also accept: one-letter-away matches for words of 3 or more letters (unless that's another game word); repeated letters collapsed ("bbbbb" → "b"); repeats of an accepted form ("bebe", "be be be"); and phrases of up to 2 distinct words containing a match. Never accept another word that's in the game.
 - **Disable the speaker button** while the mic is getting ready or listening.
-- **Tap lock:** speaker, mic and replay buttons ignore repeat taps for 0.5s.
+- **Tap lock:** the speaker button ignores repeat taps for 1s; mic and replay buttons for 0.5s.
 - **Never reload the page to restart** (`location.reload()` leaves the iPhone mic stuck until Chrome restarts). Reset the round in place. On `pagehide`, abort recognition, cancel speech and close the AudioContext.
 - Request the mic with `getUserMedia` once per session on load (tracks stopped right away) so the parent can allow it up front. **Do not start a SpeechRecognition on page load** (a load-time "warm-up" recognizer to trigger Safari's speech prompt early broke the microphone on iPhone in both Chrome and Safari). Safari's speech prompt therefore appears on the first mic tap.
 - Sounds only play after a user gesture, so create or resume the AudioContext inside the mic button's click handler.
