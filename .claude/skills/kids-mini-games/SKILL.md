@@ -52,7 +52,7 @@ The repo is public: never put the child's name in files, commit messages or page
   - If audio hasn't started within 1.5s, silently retry once.
   - Accept a right answer as soon as any interim result matches.
   - If nothing is heard, say "I didn't hear you. Please try again" without counting it as a wrong try.
-- **Matching is forgiving:** give each word a list of sound-alikes (e.g. `was` → horse, what, wars, does, oz). Also accept: one-letter-away matches for words of 3 or more letters (unless that's another game word); repeated letters collapsed ("bbbbb" → "b"); repeats of an accepted form ("bebe", "be be be"); and phrases of up to 2 distinct words containing a match. Never accept another word that's in the game.
+- **Matching is forgiving:** give each word a list of sound-alikes (e.g. `was` → horse, what, wars, does, oz). A word can also have a pattern `p` for short, hard-to-recognise words (e.g. `the` uses `/^(th|dh|d|t|v|f|z)[aeiouyhr]{0,3}$/`, which accepts duh, da, thuh, vuh, zuh and so on); other game words never match a pattern. Also accept: one-letter-away matches for words of 3 or more letters (unless that's another game word); repeated letters collapsed ("bbbbb" → "b"); repeats of an accepted form ("bebe", "be be be"); and phrases of up to 2 distinct words containing a match. Never accept another word that's in the game.
 - **Disable the speaker button** while the mic is getting ready or listening.
 - **Tap lock:** the speaker button ignores repeat taps for 1s; mic and replay buttons for 0.5s.
 - **Never reload the page to restart** (`location.reload()` leaves the iPhone mic stuck until Chrome restarts). Reset the round in place. On `pagehide`, abort recognition, cancel speech and close the AudioContext.

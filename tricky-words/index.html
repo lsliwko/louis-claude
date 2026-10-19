@@ -91,7 +91,11 @@ var W=[
 {w:"to",s:["to","too","two","2","tu","toe","do","doo","tooth"]},
 {w:"he",s:["he","hee","hey","heat","hes","hed","e","ee","eat"]},
 {w:"she",s:["she","shee","shi","sea","see","c","chi","chee","shea","sheep","sheet","sheesh"]},
-{w:"the",s:["the","thee","tea","tee","t","te","tear","d","dd","thuh","tha","thi","ther","thur","thir","da","dah","duh","de","dee","di","der","dur","ve","vuh","va","fe","fa","thy","tho","there","theres","their","theirs","theyre","they","thay","that","thats","this","these","those","them","then","than","though","thus","uh","a"]},
+{w:"the",p:/^(th|dh|d|t|v|f|z)[aeiouyhr]{0,3}$/,s:["the","thee","tea","tee","t","te","tear","d","dd","thuh","tha","thi","ther","thur","thir",
+  "da","dah","duh","de","dee","di","der","dur","dear","deer","dare","dirt","dumb","done","dun","dug","dub","dull","dust",
+  "ve","vuh","va","vee","v","fe","fa","fuh","fur","for","of","off","z","zee","zed","zuh","za",
+  "thy","tho","thud","thumb","thug","thus","though","there","theres","their","theirs","theyre","they","thay",
+  "that","thats","this","these","those","them","then","than","uh","a","ah","er","err","ur","huh","um"]},
 {w:"was",s:["was","woz","wuz","what","whats","horse","hoss","wars","war","worse","wasp","wash","wuss","oz","does","boss","laws"]}
 ];
 function $(id){return document.getElementById(id)}
@@ -213,6 +217,7 @@ function lev(a,b){var m=a.length,n=b.length,d=[],i,j;for(i=0;i<=m;i++){d[i]=[i]}
   for(i=1;i<=m;i++)for(j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
 var TARGETS=W.map(function(v){return v.w.toLowerCase()});
 function close(x,w){var tw=x.w.toLowerCase();if(x.s.indexOf(w)>=0)return true;
+  if(x.p&&x.p.test(w)&&TARGETS.indexOf(w)<0)return true;
   if(tw.length>=3&&w!==tw&&TARGETS.indexOf(w)<0&&lev(w,tw)<=1)return true;return false}
 function squash(w){return w.replace(/(.)\1+/g,'$1')}
 function hit(x,w){return close(x,w)||close(x,squash(w))}
