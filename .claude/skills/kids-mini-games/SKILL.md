@@ -66,7 +66,7 @@ The repo is public: never put the child's name in files, commit messages or page
 - Syntax check: `node -e` with `new Function(<script body>)`.
 - Use Playwright (Chromium is pre-installed) with a **fake `SpeechRecognition`** injected via `add_init_script`. It should fire `onaudiostart`/`onresult`/`onend` according to a queued plan, so you can test right, wrong, silence and the auto-retry.
 - Call `right()` directly to time the fireworks and screenshot them, and check the next question appears after the show.
-- Unit-test the matching function against the reported mishearings.
+- Unit-test the matching function against the reported mishearings, and check that no game word is accepted for another.
 - Speech recognition can't really be tested here: say so, and ask the user to try it on the phone.
 
 ## Working with the user
