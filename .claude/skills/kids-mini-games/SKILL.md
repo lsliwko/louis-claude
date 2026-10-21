@@ -42,6 +42,7 @@ The repo is public: never put the child's name in files, commit messages or page
 - **New-words batch:** a `NEW` array near the top of the script lists the words the child is currently learning (now `the`, `we`, `do`, `of`). They get base weight 4 instead of 1 when a round is picked, so each comes up in about 3 rounds out of 4. When the user names a new batch, replace this list.
 - **Adaptive practice:** remember items missed on the first try in `localStorage` (try/catch around every access) and pick them more often (weight `1 + 2 × misses`, capped at 5 misses). A first-try success lowers the count by one. Pick the 5 questions without repeats.
 - **No grown-up controls** on the play screen.
+- **Nothing can be selected or highlighted by touch** (menu and every game): `user-select:none`, `-webkit-touch-callout:none` and `-webkit-tap-highlight-color:transparent` on `*`; `touch-action:manipulation` on buttons and links; block `selectstart`, `contextmenu` and `dragstart`; and blur the focused element after each tap so no focus ring stays on screen.
 
 ## Speech and microphone (iPhone Chrome = Safari's WebKit underneath)
 

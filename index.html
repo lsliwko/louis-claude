@@ -18,7 +18,10 @@
 :root[data-theme="dark"]{
   --ground:#10162A; --card:#1A2240; --ink:#EEF2FF; --soft:#A9B2D3; --line:#2E3963; --accent:#8EA8FF; --accent-bg:#26326A;
   --t1:#8EA8FF; --t1-bg:#26326A; color-scheme:dark}
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+img,svg,a{-webkit-user-drag:none}
+button,a{touch-action:manipulation}
+:focus:not(:focus-visible){outline:none}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:max(24px,env(safe-area-inset-top,0px)) max(32px,env(safe-area-inset-bottom,0px))}
@@ -47,5 +50,11 @@ h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.1;mar
     </a>
   </nav>
 </div>
+<script>
+document.addEventListener('selectstart',function(e){e.preventDefault()});
+document.addEventListener('contextmenu',function(e){e.preventDefault()});
+document.addEventListener('dragstart',function(e){e.preventDefault()});
+document.addEventListener('pointerup',function(){var a=document.activeElement;if(a&&a!==document.body&&a.blur)setTimeout(function(){try{a.blur()}catch(e){}},0)});
+</script>
 </body>
 </html>
