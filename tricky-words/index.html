@@ -88,14 +88,16 @@ var W=[
 {w:"be",s:["be","bee","b","bea","bey","beat","bean","pea","pee","p"]},
 {w:"me",s:["me","mi","mee","mea","meet","meat","knee","nee"]},
 {w:"we",s:["we","wee","wii","whee","oui","weed","wed","week","wheat"]},
-{w:"to",s:["to","too","two","2","tu","toe","do","doo","tooth"]},
+{w:"to",s:["to","too","two","2","tu","toe","tooth"]},
 {w:"he",s:["he","hee","hey","heat","hes","hed","e","ee","eat"]},
 {w:"she",s:["she","shee","shi","sea","see","c","chi","chee","shea","sheep","sheet","sheesh"]},
 {w:"the",p:/^(th|dh|d|t|v|f|z)[aeiouyhr]{0,3}$/,s:["the","thee","tea","tee","t","te","tear","d","dd","thuh","tha","thi","ther","thur","thir",
   "da","dah","duh","de","dee","di","der","dur","dear","deer","dare","dirt","dumb","done","dun","dug","dub","dull","dust",
-  "ve","vuh","va","vee","v","fe","fa","fuh","fur","for","of","off","z","zee","zed","zuh","za",
+  "ve","vuh","va","vee","v","fe","fa","fuh","fur","for","z","zee","zed","zuh","za",
   "thy","tho","thud","thumb","thug","thus","though","there","theres","their","theirs","theyre","they","thay",
   "that","thats","this","these","those","them","then","than","uh","a","ah","er","err","ur","huh","um"]},
+{w:"do",s:["do","doo","du","due","dew","dues","dude","doom","dune","dooh"]},
+{w:"of",s:["of","off","ov","ove","uv","uff","av","love","above","have","oven","oh","o","uh","a","ah"]},
 {w:"was",s:["was","woz","wuz","what","whats","horse","hoss","wars","war","worse","wasp","wash","wuss","oz","does","boss","laws"]}
 ];
 function $(id){return document.getElementById(id)}
@@ -170,12 +172,14 @@ function tick(){fctx.clearRect(0,0,innerWidth,innerHeight);fctx.lineCap='round';
   if(parts.length||flashes.length)requestAnimationFrame(tick);else{running=false;fctx.clearRect(0,0,innerWidth,innerHeight)}}
 
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+// NEW: the current batch of new words; they come up much more often.
+var NEW=['the','we','do','of'];
 var MKEY='tw-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(w){MISS[w]=Math.min((MISS[w]||0)+1,5);saveMiss()}
 function noteHit(w){if(MISS[w]){MISS[w]--;if(!MISS[w])delete MISS[w];saveMiss()}}
 function pickRound(k){var pool=W.slice(),out=[];
-  while(out.length<k&&pool.length){var tot=0,ws=pool.map(function(v){var x=1+2*(MISS[v.w]||0);tot+=x;return x}),r=Math.random()*tot,i=0;
+  while(out.length<k&&pool.length){var tot=0,ws=pool.map(function(v){var x=(NEW.indexOf(v.w)>=0?4:1)+2*(MISS[v.w]||0);tot+=x;return x}),r=Math.random()*tot,i=0;
     while(r>=ws[i]){r-=ws[i];i++}out.push(pool.splice(i,1)[0])}return out}
 var ROUND=5,order=pickRound(ROUND),n=0,score=0,tries=0,busy=false,rec=null,SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 var VOICE=null,UTT=null;
@@ -217,7 +221,7 @@ function lev(a,b){var m=a.length,n=b.length,d=[],i,j;for(i=0;i<=m;i++){d[i]=[i]}
   for(i=1;i<=m;i++)for(j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
 var TARGETS=W.map(function(v){return v.w.toLowerCase()});
 function close(x,w){var tw=x.w.toLowerCase();if(x.s.indexOf(w)>=0)return true;
-  if(x.p&&x.p.test(w)&&TARGETS.indexOf(w)<0)return true;
+  if(x.p&&x.p.test(w)&&TARGETS.indexOf(w)<0&&!W.some(function(o){return o!==x&&o.s.indexOf(w)>=0}))return true;
   if(tw.length>=3&&w!==tw&&TARGETS.indexOf(w)<0&&lev(w,tw)<=1)return true;return false}
 function squash(w){return w.replace(/(.)\1+/g,'$1')}
 function hit(x,w){return close(x,w)||close(x,squash(w))}
