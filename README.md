@@ -13,9 +13,9 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 2. In the game page, add a home button that links to `../` so it can get back to the menu.
 3. In the root `index.html`, copy the existing tile and change its link, colours, icon and name.
 
-## Agent skill
+## Claude skill
 
-`.agents/skills/kids-mini-games/SKILL.md` holds the rules and conventions for building games here (design for a non-reader, speech and microphone handling on iPhone, stars, fireworks, testing). `AGENTS.md` points coding agents to it. `.claude/skills/kids-mini-games` is a link to the same folder, because Claude Code only looks for skills under `.claude/skills/`.
+`.claude/skills/kids-mini-games/SKILL.md` holds the rules and conventions for building games here (design for a non-reader, speech and microphone handling on iPhone, stars, fireworks, testing). Claude Code loads it automatically when working in this repo, and `AGENTS.md` points other coding agents to it.
 
 ## Games
 
