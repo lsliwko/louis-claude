@@ -94,7 +94,7 @@ var W=[
 {w:"to",s:["to","too","two","2","tu","toe","tooth"]},
 {w:"he",s:["he","hee","hey","heat","hes","hed","e","ee","eat"]},
 {w:"she",s:["she","shee","shi","sea","see","c","chi","chee","shea","sheep","sheet","sheesh"]},
-{w:"the",p:/^(th|dh|d|t|v|f|z)[aeiouyhr]{0,3}$/,s:["the","yeah","yea","yeh","yah","ya","yay","thee","tea","tee","t","te","tear","d","dd","thuh","tha","thi","ther","thur","thir",
+{w:"the",p:/^[a-z]{1,4}$/,s:["the","yeah","yea","yeh","yah","ya","yay","thee","tea","tee","t","te","tear","d","dd","thuh","tha","thi","ther","thur","thir",
   "da","dah","duh","de","dee","di","der","dur","dear","deer","dare","dirt","dumb","done","dun","dug","dub","dull","dust",
   "ve","vuh","va","vee","v","fe","fa","fuh","fur","for","z","zee","zed","zuh","za",
   "thy","tho","thud","thumb","thug","thus","though","there","theres","their","theirs","theyre","they","thay",
@@ -227,7 +227,8 @@ function close(x,w){var tw=x.w.toLowerCase();if(x.s.indexOf(w)>=0)return true;
   if(x.p&&x.p.test(w)&&TARGETS.indexOf(w)<0&&!W.some(function(o){return o!==x&&o.s.indexOf(w)>=0}))return true;
   if(tw.length>=3&&w!==tw&&TARGETS.indexOf(w)<0&&lev(w,tw)<=1)return true;return false}
 function squash(w){return w.replace(/(.)\1+/g,'$1')}
-function hit(x,w){return close(x,w)||close(x,squash(w))}
+function other(x,w){return W.some(function(o){return o!==x&&(o.w.toLowerCase()===w||o.s.indexOf(w)>=0)})}
+function hit(x,w){if(x.s.indexOf(w)<0&&other(x,w))return false;return close(x,w)||close(x,squash(w))}
 function reps(x,t){var c=t.replace(/\s+/g,'');return [x.w.toLowerCase()].concat(x.s).some(function(v){return v&&c.length>v.length&&c.split(v).join('')===''})}
 function matches(x,t){if(hit(x,t)||hit(x,t.replace(/\s+/g,''))||reps(x,t))return true;
   var ws=t.split(/\s+/).filter(function(w,i,a){return w&&w!==a[i-1]}),uniq=ws.filter(function(w,i){return ws.indexOf(w)===i});
