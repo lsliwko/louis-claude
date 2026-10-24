@@ -10,15 +10,15 @@
 /* Same play card as Tricky Words; the times question is the hero, three big answer buttons below */
 :root{
   --ground:#EEF4FB; --card:#FFFFFF; --ink:#1C2647; --soft:#5A6485; --line:#D5DEEC;
-  --accent:#2F5BEA; --accent-bg:#E3EAFE; --good:#1F7A4D; --good-bg:#DFF3E8; --bad:#B4322A; --bad-bg:#FBE3E0; --star:#E3A21A;
+  --accent:#2F5BEA; --accent-bg:#E3EAFE; --good:#1F7A4D; --good-bg:#DFF3E8; --bad:#B4322A; --bad-bg:#FBE3E0; --star:#E3A21A; --btn:#2F5BEA; --btn-ok:#1F7A4D; --btn-no:#8A93AE; --on-btn:#FFFFFF;
   --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --ground:#10162A; --card:#1A2240; --ink:#EEF2FF; --soft:#A9B2D3; --line:#2E3963;
-  --accent:#8EA8FF; --accent-bg:#26326A; --good:#7FD8A8; --good-bg:#173D2B; --bad:#FF9C92; --bad-bg:#4A1F1C; --star:#F4C04E; color-scheme:dark}}
+  --accent:#8EA8FF; --accent-bg:#26326A; --good:#7FD8A8; --good-bg:#173D2B; --bad:#FF9C92; --bad-bg:#4A1F1C; --star:#F4C04E; --btn:#3D63E0; --btn-ok:#23885A; --btn-no:#4A5372; --on-btn:#FFFFFF; color-scheme:dark}}
 :root[data-theme="dark"]{
   --ground:#10162A; --card:#1A2240; --ink:#EEF2FF; --soft:#A9B2D3; --line:#2E3963;
-  --accent:#8EA8FF; --accent-bg:#26326A; --good:#7FD8A8; --good-bg:#173D2B; --bad:#FF9C92; --bad-bg:#4A1F1C; --star:#F4C04E; color-scheme:dark}
+  --accent:#8EA8FF; --accent-bg:#26326A; --good:#7FD8A8; --good-bg:#173D2B; --bad:#FF9C92; --bad-bg:#4A1F1C; --star:#F4C04E; --btn:#3D63E0; --btn-ok:#23885A; --btn-no:#4A5372; --on-btn:#FFFFFF; color-scheme:dark}
 *{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 img,svg,a{-webkit-user-drag:none}
 button,a{touch-action:manipulation}
@@ -45,19 +45,16 @@ body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);
 button{font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 18px;cursor:pointer;touch-action:manipulation}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 button:active{transform:scale(.97)}
-.hear{width:72px;height:72px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--accent);background:var(--accent-bg);border-color:var(--accent)}
-.hear.tap{animation:pulse .5s 2}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @keyframes pulse{50%{transform:scale(1.03)}}
 .q{font-family:var(--display);font-weight:700;font-size:clamp(48px,14vw,96px);line-height:1;color:var(--accent);margin:4px 0 0;white-space:nowrap;font-variant-numeric:tabular-nums}
 .q .ans{color:var(--good)}
-.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.opt{min-height:96px;padding:0;font-family:var(--display);font-weight:700;font-size:44px;line-height:1;color:var(--accent);background:var(--card);border-color:var(--line);font-variant-numeric:tabular-nums}
-.opt.ok{background:var(--good-bg);color:var(--good);border-color:var(--good)}
-.opt.no{background:var(--bad-bg);color:var(--bad);border-color:var(--bad);opacity:.55}
+.opts{display:flex;flex-direction:row;gap:12px}
+.opt{flex:1 1 0;min-width:0;min-height:104px;padding:0;font-family:var(--display);font-weight:700;font-size:44px;line-height:1;color:var(--on-btn);background:var(--btn);border-color:var(--btn);font-variant-numeric:tabular-nums}
+.opt.ok{background:var(--btn-ok);border-color:var(--btn-ok);color:var(--on-btn)}
+.opt.no{background:var(--btn-no);border-color:var(--btn-no);color:var(--on-btn);opacity:.6}
 .opt.shake{animation:shake .35s}
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.hear:disabled{opacity:.3;cursor:default}
 .again{width:100%;min-height:96px;margin-top:8px;background:var(--accent);color:var(--card);border-color:var(--accent);display:flex;align-items:center;justify-content:center}
 .fb{min-height:32px;text-align:center;font-family:var(--display);font-weight:700;font-size:22px;margin:0}
 .fb.ok{color:var(--good)}.fb.no{color:var(--bad)}.fb.info{color:var(--soft);font-family:var(--body);font-weight:600;font-size:16px}
@@ -75,7 +72,6 @@ button:active{transform:scale(.97)}
   <div class="bar"><i id="bar"></i></div>
   <div class="card" id="card">
     <p class="q" id="q">3 × 4 =</p>
-    <button class="hear" id="hear" type="button" aria-label="Hear the question"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
   </div>
   <div class="card end" id="endcard" hidden></div>
   <div id="ctrl" style="display:flex;flex-direction:column;gap:12px">
@@ -210,8 +206,7 @@ function wrong(){if(busy)return;var x=order[n];tries++;buzz();if(tries===1)noteM
   if(tries>=TRIES){busy=true;mark(false);reveal(x);var line=spoken(x)+' is '+(x.a*x.b);fb(x.a+' × '+x.b+' = '+(x.a*x.b),'info');
     setTimeout(function(){say(line)},850);setTimeout(function(){n++;n<order.length?show():end()},3800);return}
   fb('Please try again','no');setTimeout(function(){say('Please try again')},850)}
-function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?1000:500);return true}
-$('hear').onclick=function(){if(!lock('hear'))return;ac();var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(spoken(order[n]))};
+function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},500);return true}
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
   var ec=$('endcard');ec.innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' right!</h2><p class="ex">'+(st===L?'FIVE stars! You are winning!':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="again" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';

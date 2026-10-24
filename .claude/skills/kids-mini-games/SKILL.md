@@ -19,13 +19,13 @@ The repo is public: never put the child's name in files, commit messages or page
 - `README.md` lists the layout and has one line per game. Update it whenever a game is added or its rules change.
 - `AGENTS.md` gives other coding agents the repo rules and points them to this skill. This file is the repo copy of the skill; keep it in step with the copy saved in the Claude account.
 - `tricky-words/index.html` is the **reference implementation**. When building a new game, copy the shared pieces from it (tokens, fonts, sounds, fireworks, stars, speech, microphone handling) instead of rewriting them.
-- `multiply/index.html` is the reference for **tap-to-answer** games (no microphone): a times question (a × b, 1 to 10) with three big answer buttons. A wrong tap buzzes, greys out that button and asks to try again; after 2 wrong taps the right answer is shown in green, read aloud ("6 times 8 is 48"), a grey star is given and the game moves on. The question text shrinks to fit narrow phones (`fitQ`). Missed questions are remembered under `mx-misses`.
+- `multiply/index.html` is the reference for **tap-to-answer** games (no microphone): a times question (a × b, 1 to 10) with no speaker button and three big answer buttons side by side in one row (white numbers on solid blue; green when right, grey when wrong). A wrong tap buzzes, greys out that button and asks to try again; after 2 wrong taps the right answer is shown in green, read aloud ("6 times 8 is 48"), a grey star is given and the game moves on. The question text shrinks to fit narrow phones (`fitQ`). Missed questions are remembered under `mx-misses`.
 
 ## Adding a new game
 
 1. Create `<folder>/index.html` as one self-contained file: inline CSS and JS, Google Fonts only, no other external assets.
 2. Put a round **house button** in the top-left that links to `../`.
-3. Add a tile to the root `index.html`: copy the existing `<a class="tile">`, change `href`, `aria-label`, the icon SVG and the name. Each game gets its own tile colour pair (add `--t2`/`--t2-bg` etc. tokens in all three theme blocks).
+3. Add a tile to the root `index.html`: copy the existing `<a class="tile">`, change `href`, `aria-label`, the icon SVG and the name. Tiles use the blue `--t1`/`--t1-bg` pair unless the user asks for another colour.
 4. Add the game to `README.md`.
 5. Test it (see Testing), commit, push, then tell the user it'll be live in a few minutes and to close and reopen the tab.
 
