@@ -52,8 +52,8 @@ button:active{transform:scale(.97)}
 @keyframes pulse{50%{transform:scale(1.03)}}
 .q{font-family:var(--display);font-weight:700;font-size:clamp(48px,14vw,96px);line-height:1;color:var(--accent);margin:4px 0 0;white-space:nowrap;font-variant-numeric:tabular-nums}
 .q .ans{color:var(--good)}
-.opts{display:flex;flex-direction:row;gap:12px}
-.opt{flex:1 1 0;min-width:0;min-height:104px;padding:0;font-family:var(--display);font-weight:700;font-size:44px;line-height:1;color:var(--on-btn);background:var(--btn);border-color:var(--btn);font-variant-numeric:tabular-nums}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.opt{min-width:0;min-height:96px;padding:0;font-family:var(--display);font-weight:700;font-size:44px;line-height:1;color:var(--on-btn);background:var(--btn);border-color:var(--btn);font-variant-numeric:tabular-nums}
 .opt.ok{background:var(--btn-ok);border-color:var(--btn-ok);color:var(--on-btn)}
 .opt.no{background:var(--btn-no);border-color:var(--btn-no);color:var(--on-btn);opacity:.6}
 .opt.shake{animation:shake .35s}
@@ -178,8 +178,8 @@ for(var a=TIMES_MIN;a<=TIMES_MAX;a++)for(var b=TIMES_MIN;b<=TIMES_MAX;b++)QX.pus
 for(var a=ADD_MIN;a<=ADD_MAX;a++)for(var b=ADD_MIN;b<=ADD_MAX;b++)QA.push({op:'+',a:a,b:b,k:a+'+'+b});
 function ans(x){return x.op==='+'?x.a+x.b:x.a*x.b}
 function sign(x){return x.op==='+'?'+':'\u00d7'}
-// Wrong answers allowed before the right one is shown (3 buttons, so 2 wrong leaves only the right one).
-var TRIES=2;
+// Answer buttons, and wrong answers allowed before the right one is shown (4 buttons, so 3 wrong leaves only the right one).
+var CHOICES=4,TRIES=CHOICES-1;
 var MKEY='mx-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(k){MISS[k]=Math.min((MISS[k]||0)+1,5);saveMiss()}
@@ -188,11 +188,11 @@ function pickFrom(pool){var tot=0,ws=pool.map(function(v){var x=1+2*(MISS[v.k]||
   while(r>=ws[i]){r-=ws[i];i++}return pool.splice(i,1)[0]}
 function pickRound(k){var px=QX.slice(),pa=QA.slice(),out=[];
   while(out.length<k)out.push(pickFrom(Math.random()<0.5?px:pa));return out}
-// Two believable wrong answers. Times: a neighbouring times-table answer, or the answer plus or minus a little.
+// Three believable wrong answers. Times: a neighbouring times-table answer, or the answer plus or minus a little.
 // Adding: the answer plus or minus 1 to 3, or 10 out (a common tens slip). Adding answers can be 0; times answers start at 1.
 function options(x){var c=ans(x),lo=x.op==='+'?0:1,cand=x.op==='+'?[c+1,c-1,c+2,c-2,c+1,c-1,c+3,c-3,c+10,c-10]:[x.a*(x.b+1),x.a*(x.b-1),(x.a+1)*x.b,(x.a-1)*x.b,c+1,c-1,c+2,c-2,c+10,c-10,x.a+x.b],seen={},out=[];seen[c]=1;
-  shuf(cand).forEach(function(v){if(out.length<2&&v>=lo&&!seen[v]){seen[v]=1;out.push(v)}});
-  for(var d=3;out.length<2;d++){[c+d,c-d].forEach(function(v){if(out.length<2&&v>=lo&&!seen[v]){seen[v]=1;out.push(v)}})}
+  shuf(cand).forEach(function(v){if(out.length<CHOICES-1&&v>=lo&&!seen[v]){seen[v]=1;out.push(v)}});
+  for(var d=3;out.length<CHOICES-1;d++){[c+d,c-d].forEach(function(v){if(out.length<CHOICES-1&&v>=lo&&!seen[v]){seen[v]=1;out.push(v)}})}
   return shuf([c].concat(out))}
 var ROUND=5,order=pickRound(ROUND),n=0,score=0,tries=0,busy=false;
 function spoken(x){return x.a+(x.op==='+'?' plus ':' times ')+x.b}
