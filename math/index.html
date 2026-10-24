@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Multiply</title>
+<title>Math</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@400;600&display=swap">
 <style>
-/* Same play card as Tricky Words; the times question is the hero, three big answer buttons below */
+/* Same play card as Tricky Words; the sum is the hero, three big answer buttons below */
 :root{
   --ground:#EEF4FB; --card:#FFFFFF; --ink:#1C2647; --soft:#5A6485; --line:#D5DEEC;
   --accent:#2F5BEA; --accent-bg:#E3EAFE; --good:#1F7A4D; --good-bg:#DFF3E8; --bad:#B4322A; --bad-bg:#FBE3E0; --star:#E3A21A; --btn:#2F5BEA; --btn-ok:#1F7A4D; --btn-no:#8A93AE; --on-btn:#FFFFFF;
@@ -167,8 +167,10 @@ function drawStars(){var h='';for(var i=0;i<res.length;i++)h+='<svg class="st'+(
 function mark(ok){res[n]=ok?'ok':'miss';drawStars();var el=$('stars').children[n];if(el)el.classList.add('pop')}
 
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
-// Questions: every a x b with a and b from 1 to MAX.
-var MAX=10,Q=[];for(var a=1;a<=MAX;a++)for(var b=1;b<=MAX;b++)Q.push({a:a,b:b,k:a+'x'+b});
+// Questions: every a x b and every a + b, with a and b from 1 to MAX (half times, half adding).
+var MAX=10,Q=[];for(var a=1;a<=MAX;a++)for(var b=1;b<=MAX;b++){Q.push({op:'x',a:a,b:b,k:a+'x'+b});Q.push({op:'+',a:a,b:b,k:a+'+'+b})}
+function ans(x){return x.op==='+'?x.a+x.b:x.a*x.b}
+function sign(x){return x.op==='+'?'+':'\u00d7'}
 // Wrong answers allowed before the right one is shown (3 buttons, so 2 wrong leaves only the right one).
 var TRIES=2;
 var MKEY='mx-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
@@ -178,32 +180,33 @@ function noteHit(k){if(MISS[k]){MISS[k]--;if(!MISS[k])delete MISS[k];saveMiss()}
 function pickRound(k){var pool=Q.slice(),out=[];
   while(out.length<k&&pool.length){var tot=0,ws=pool.map(function(v){var x=1+2*(MISS[v.k]||0);tot+=x;return x}),r=Math.random()*tot,i=0;
     while(r>=ws[i]){r-=ws[i];i++}out.push(pool.splice(i,1)[0])}return out}
-// Two believable wrong answers: a neighbouring times-table answer, or the answer plus or minus a little.
-function options(x){var c=x.a*x.b,cand=[x.a*(x.b+1),x.a*(x.b-1),(x.a+1)*x.b,(x.a-1)*x.b,c+1,c-1,c+2,c-2,c+10,c-10,x.a+x.b],seen={},out=[];seen[c]=1;
+// Two believable wrong answers. Times: a neighbouring times-table answer, or the answer plus or minus a little.
+// Adding: the answer plus or minus 1 to 3.
+function options(x){var c=ans(x),cand=x.op==='+'?[c+1,c-1,c+2,c-2,c+1,c-1,c+3,c-3]:[x.a*(x.b+1),x.a*(x.b-1),(x.a+1)*x.b,(x.a-1)*x.b,c+1,c-1,c+2,c-2,c+10,c-10,x.a+x.b],seen={},out=[];seen[c]=1;
   shuf(cand).forEach(function(v){if(out.length<2&&v>0&&!seen[v]){seen[v]=1;out.push(v)}});
   for(var d=3;out.length<2;d++){[c+d,c-d].forEach(function(v){if(out.length<2&&v>0&&!seen[v]){seen[v]=1;out.push(v)}})}
   return shuf([c].concat(out))}
 var ROUND=5,order=pickRound(ROUND),n=0,score=0,tries=0,busy=false;
-function spoken(x){return x.a+' times '+x.b}
+function spoken(x){return x.a+(x.op==='+'?' plus ':' times ')+x.b}
 function show(){var x=order[n];tries=0;busy=false;
   $('prog').textContent='Question '+(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';
-  $('q').textContent=x.a+' × '+x.b+' =';fitQ();fb('');
+  $('q').textContent=x.a+' '+sign(x)+' '+x.b+' =';fitQ();fb('');
   var box=$('opts');box.innerHTML='';
   options(x).forEach(function(v){var b=document.createElement('button');b.type='button';b.className='opt';b.textContent=v;b.setAttribute('aria-label',String(v));
     b.onclick=function(){answer(b,v)};box.appendChild(b)})}
 function fitQ(){var q=$('q'),max=$('card').clientWidth-40;q.style.fontSize='';var fs=parseFloat(getComputedStyle(q).fontSize);
   while(q.scrollWidth>max&&fs>24){fs-=2;q.style.fontSize=fs+'px'}}
 window.addEventListener('resize',fitQ);
-function reveal(x){$('q').innerHTML=x.a+' × '+x.b+' = <span class="ans">'+(x.a*x.b)+'</span>';fitQ();
-  Array.prototype.forEach.call($('opts').children,function(b){if(+b.textContent===x.a*x.b)b.classList.add('ok');b.disabled=true})}
+function reveal(x){$('q').innerHTML=x.a+' '+sign(x)+' '+x.b+' = <span class="ans">'+ans(x)+'</span>';fitQ();
+  Array.prototype.forEach.call($('opts').children,function(b){if(+b.textContent===ans(x))b.classList.add('ok');b.disabled=true})}
 function answer(b,v){if(busy||b.disabled)return;ac();var x=order[n];
-  if(v===x.a*x.b)return right(b);
+  if(v===ans(x))return right(b);
   b.classList.add('no','shake');b.disabled=true;wrong()}
 function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);reveal(x);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})}
 function wrong(){if(busy)return;var x=order[n];tries++;buzz();if(tries===1)noteMiss(x.k);
-  if(tries>=TRIES){busy=true;mark(false);reveal(x);var line=spoken(x)+' is '+(x.a*x.b);fb(x.a+' × '+x.b+' = '+(x.a*x.b),'info');
+  if(tries>=TRIES){busy=true;mark(false);reveal(x);var line=spoken(x)+' is '+ans(x);fb(x.a+' '+sign(x)+' '+x.b+' = '+ans(x),'info');
     setTimeout(function(){say(line)},850);setTimeout(function(){n++;n<order.length?show():end()},3800);return}
   fb('Please try again','no');setTimeout(function(){say('Please try again')},850)}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},500);return true}
