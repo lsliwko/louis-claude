@@ -176,7 +176,7 @@ function tick(){fctx.clearRect(0,0,innerWidth,innerHeight);fctx.lineCap='round';
 
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 // NEW: the current batch of new words; they come up much more often.
-var NEW=['the','we','do','of'];
+var NEW=['the','we','do','of','me'];
 var MKEY='tw-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(w){MISS[w]=Math.min((MISS[w]||0)+1,5);saveMiss()}
@@ -206,7 +206,8 @@ function right(){if(busy)return;busy=true;score++;mark(true);if(tries===0)noteHi
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})}
 function wrong(m){if(busy)return;tries++;buzz();if(tries===1)noteMiss(order[n].w);
-  if(tries>=4){busy=true;mark(false);fb("Let's try the next one",'info');setTimeout(function(){say("Let's try the next one")},850);
+  // Two mistakes are allowed; the third wrong try moves on.
+  if(tries>=3){busy=true;mark(false);fb("Let's try the next one",'info');setTimeout(function(){say("Let's try the next one")},850);
     setTimeout(function(){n++;n<order.length?show():end()},3000);return}
   fb(m||'Please try again','no');setTimeout(function(){say('Please try again')},850)}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){if(!(id==='hear'&&micState!=='idle'))b.disabled=false},id==='hear'?3000:500);return true}
