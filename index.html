@@ -9,15 +9,15 @@
 /* Big picture tiles on the same playground ground as the games; one tile per game folder */
 :root{
   --ground:#EEF4FB; --card:#FFFFFF; --ink:#1C2647; --soft:#5A6485; --line:#D5DEEC; --accent:#2F5BEA; --accent-bg:#E3EAFE;
-  --t1:#2F5BEA; --t1-bg:#E3EAFE;
+  --t1:#2F5BEA; --t1-bg:#E3EAFE; --t2:#C2410C; --t2-bg:#FFEDD5;
   --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --ground:#10162A; --card:#1A2240; --ink:#EEF2FF; --soft:#A9B2D3; --line:#2E3963; --accent:#8EA8FF; --accent-bg:#26326A;
-  --t1:#8EA8FF; --t1-bg:#26326A; color-scheme:dark}}
+  --t1:#8EA8FF; --t1-bg:#26326A; --t2:#FDBA74; --t2-bg:#4A2611; color-scheme:dark}}
 :root[data-theme="dark"]{
   --ground:#10162A; --card:#1A2240; --ink:#EEF2FF; --soft:#A9B2D3; --line:#2E3963; --accent:#8EA8FF; --accent-bg:#26326A;
-  --t1:#8EA8FF; --t1-bg:#26326A; color-scheme:dark}
+  --t1:#8EA8FF; --t1-bg:#26326A; --t2:#FDBA74; --t2-bg:#4A2611; color-scheme:dark}
 *{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 img,svg,a{-webkit-user-drag:none}
 button,a{touch-action:manipulation}
@@ -47,6 +47,12 @@ h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.1;mar
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
       </span>
       <span class="name">Tricky Words</span>
+    </a>
+    <a class="tile" href="multiply/" aria-label="Multiply">
+      <span class="icon" style="background:var(--t2-bg);color:var(--t2)">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
+      </span>
+      <span class="name">Multiply</span>
     </a>
   </nav>
 </div>

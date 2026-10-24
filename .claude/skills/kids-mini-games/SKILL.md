@@ -19,6 +19,7 @@ The repo is public: never put the child's name in files, commit messages or page
 - `README.md` lists the layout and has one line per game. Update it whenever a game is added or its rules change.
 - `AGENTS.md` gives other coding agents the repo rules and points them to this skill. This file is the repo copy of the skill; keep it in step with the copy saved in the Claude account.
 - `tricky-words/index.html` is the **reference implementation**. When building a new game, copy the shared pieces from it (tokens, fonts, sounds, fireworks, stars, speech, microphone handling) instead of rewriting them.
+- `multiply/index.html` is the reference for **tap-to-answer** games (no microphone): a times question (a × b, 1 to 10) with three big answer buttons. A wrong tap buzzes, greys out that button and asks to try again; after 2 wrong taps the right answer is shown in green, read aloud ("6 times 8 is 48"), a grey star is given and the game moves on. The question text shrinks to fit narrow phones (`fitQ`). Missed questions are remembered under `mx-misses`.
 
 ## Adding a new game
 
