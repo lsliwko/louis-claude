@@ -178,8 +178,8 @@ for(var a=TIMES_MIN;a<=TIMES_MAX;a++)for(var b=TIMES_MIN;b<=TIMES_MAX;b++)QX.pus
 for(var a=ADD_MIN;a<=ADD_MAX;a++)for(var b=ADD_MIN;b<=ADD_MAX;b++)QA.push({op:'+',a:a,b:b,k:a+'+'+b});
 function ans(x){return x.op==='+'?x.a+x.b:x.a*x.b}
 function sign(x){return x.op==='+'?'+':'\u00d7'}
-// Answer buttons, and wrong answers allowed before the right one is shown (4 buttons, so 3 wrong leaves only the right one).
-var CHOICES=4,TRIES=CHOICES-1;
+// Answer buttons, and how many wrong taps end the question: one mistake is allowed, the second wrong tap shows the right answer.
+var CHOICES=4,TRIES=2;
 var MKEY='mx-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(k){MISS[k]=Math.min((MISS[k]||0)+1,5);saveMiss()}
