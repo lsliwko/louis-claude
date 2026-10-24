@@ -209,7 +209,7 @@ function wrong(m){if(busy)return;tries++;buzz();if(tries===1)noteMiss(order[n].w
   if(tries>=4){busy=true;mark(false);fb("Let's try the next one",'info');setTimeout(function(){say("Let's try the next one")},850);
     setTimeout(function(){n++;n<order.length?show():end()},3000);return}
   fb(m||'Please try again','no');setTimeout(function(){say('Please try again')},850)}
-function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){if(!(id==='hear'&&micState!=='idle'))b.disabled=false},id==='hear'?1000:500);return true}
+function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){if(!(id==='hear'&&micState!=='idle'))b.disabled=false},id==='hear'?3000:500);return true}
 $('hear').onclick=function(){if(!lock('hear'))return;var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].sp||order[n].w)};
 
 function norm(t){return t.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim()}

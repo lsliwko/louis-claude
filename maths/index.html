@@ -218,7 +218,7 @@ function wrong(){if(busy)return;var x=order[n];tries++;buzz();if(tries===1)noteM
   if(tries>=TRIES){busy=true;mark(false);reveal(x);var line=spoken(x)+' is '+ans(x);fb(x.a+' '+sign(x)+' '+x.b+' = '+ans(x),'info');
     setTimeout(function(){say(line)},850);setTimeout(function(){n++;n<order.length?show():end()},3800);return}
   fb('Please try again','no');setTimeout(function(){say('Please try again')},850)}
-function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?1000:500);return true}
+function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
   var ec=$('endcard');ec.innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' right!</h2><p class="ex">'+(st===L?'FIVE stars! You are winning!':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="again" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';
