@@ -2,7 +2,7 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Maths</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@400;600&display=swap">
@@ -21,7 +21,7 @@
   --accent:#8EA8FF; --accent-bg:#26326A; --good:#7FD8A8; --good-bg:#173D2B; --bad:#FF9C92; --bad-bg:#4A1F1C; --star:#F4C04E; --btn:#3D63E0; --btn-ok:#23885A; --btn-no:#4A5372; --on-btn:#FFFFFF; color-scheme:dark}
 *{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 img,svg,a{-webkit-user-drag:none}
-button,a{touch-action:manipulation}
+html,body,*{touch-action:manipulation}
 :focus:not(:focus-visible){outline:none}
 [hidden]{display:none!important}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
@@ -232,6 +232,10 @@ window.addEventListener('pagehide',function(){try{speechSynthesis.cancel()}catch
 drawStars();show();
 </script>
 <script>
+// No pinch or double-tap zoom (Safari ignores user-scalable=no, so block its gesture events too).
+['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
+document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+document.addEventListener('dblclick',function(e){e.preventDefault()},{passive:false});
 document.addEventListener('selectstart',function(e){e.preventDefault()});
 document.addEventListener('contextmenu',function(e){e.preventDefault()});
 document.addEventListener('dragstart',function(e){e.preventDefault()});
