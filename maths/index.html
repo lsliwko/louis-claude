@@ -201,12 +201,13 @@ function noteHit(k){if(MISS[k]){MISS[k]--;if(!MISS[k])delete MISS[k];saveMiss()}
 function pickFrom(pool){var tot=0,ws=pool.map(function(v){var x=1+2*(MISS[v.k]||0);tot+=x;return x}),r=Math.random()*tot,i=0;
   while(r>=ws[i]){r-=ws[i];i++}return pool.splice(i,1)[0]}
 // Levels: start with small numbers and move up when he is doing well, back down when he is struggling.
-// Each level is the [smallest, biggest] number used in a question. Times never uses 1 (too easy); adding starts at 1.
+// Each level is the [smallest, biggest] number used in a question. Times never uses 1 (too easy).
 // Progress is kept per kind (adding, times) in this browser.
-var LEVELS={'+':[[1,10],[1,15],[2,20],[2,25]],'x':[[2,5],[2,7],[2,10]]};
+var LEVELS={'+':[[0,5],[0,10],[0,15],[0,20],[0,25]],'x':[[2,5],[2,7],[2,10]]};
 var UP_WINDOW=8,UP_SCORE=7,DOWN_WINDOW=5,DOWN_SCORE=1.5;   // scores: right first time 1, right after a mistake 0.5, missed 0
 var LKEY='mx-level-2',LV={'+':{lv:0,h:[]},'x':{lv:0,h:[]}};
-try{var sv=JSON.parse(localStorage.getItem(LKEY)||'null');if(sv&&sv['+']&&sv['x'])LV=sv}catch(e){}
+try{var sv=JSON.parse(localStorage.getItem(LKEY)||'null');if(sv&&sv['+']&&sv['x'])LV=sv;
+  else{var old=JSON.parse(localStorage.getItem('mx-level')||'null');if(old&&old['+'])LV['+']=old['+']}}catch(e){}   // keep adding progress from before the times change
 function saveLv(){try{localStorage.setItem(LKEY,JSON.stringify(LV))}catch(e){}}
 function range(op){var L=LEVELS[op];return L[Math.max(0,Math.min(LV[op].lv,L.length-1))]}
 function cap(op){return range(op)[1]}
