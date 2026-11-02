@@ -86,7 +86,20 @@ button:active{transform:scale(.97)}
 <script>
 function $(id){return document.getElementById(id)}
 var AC=null;
-function ac(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}return AC}
+// Sound on iPhone: this game has no microphone, so Web Audio follows the silent switch and can be left
+// 'suspended' or 'interrupted' (e.g. after speech) or 'closed' (page restored from the back/forward cache).
+// Ask for the playback audio session, wake the audio on every tap, and only play once it is running.
+try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+var unlocked=false;
+function ac(){try{if(!AC||AC.state==='closed')AC=new(window.AudioContext||window.webkitAudioContext)();
+  if(AC.state!=='running'){var p=AC.resume();if(p&&p.catch)p.catch(function(){})}
+  if(!unlocked){var s=AC.createBufferSource();s.buffer=AC.createBuffer(1,1,22050);s.connect(AC.destination);s.start(0);unlocked=true}}catch(e){AC=null}return AC}
+function whenAudio(fn){var c=ac();if(!c)return;if(c.state==='running'){fn();return}
+  var done=false,go=function(){if(!done&&c.state==='running'){done=true;fn()}};
+  try{c.resume().then(go,function(){})}catch(e){}setTimeout(go,300)}
+document.addEventListener('pointerdown',function(){ac()},true);
+document.addEventListener('touchend',function(){ac()},true);
+window.addEventListener('pageshow',function(e){if(e.persisted){AC=null;unlocked=false}});
 function noiseBuf(c,sec){var b=c.createBuffer(1,Math.floor(c.sampleRate*sec),c.sampleRate),d=b.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b}
 function cheer(){var c=ac();if(!c)return;var t=c.currentTime+0.05,out=c.createGain();out.gain.value=0.9;out.connect(c.destination);
   [523.25,659.25,783.99,1046.5].forEach(function(f,i){var o=c.createOscillator(),g=c.createGain(),st=t+i*0.12,len=i===3?0.6:0.16;
@@ -171,9 +184,9 @@ function drawStars(){var h='';for(var i=0;i<res.length;i++)h+='<svg class="st'+(
 function mark(ok){res[n]=ok?'ok':'miss';drawStars();var el=$('stars').children[n];if(el)el.classList.add('pop')}
 
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
-// Questions: times a x b with a and b from 1 to 10, adding a + b with a and b from 0 to 40.
+// Questions: times a x b with a and b from 1 to 10, adding a + b with a and b from 0 to 25.
 // Each question in a round is a times or an adding question with equal chance.
-var TIMES_MIN=1,TIMES_MAX=10,ADD_MIN=0,ADD_MAX=40,QX=[],QA=[];
+var TIMES_MIN=1,TIMES_MAX=10,ADD_MIN=0,ADD_MAX=25,QX=[],QA=[];
 for(var a=TIMES_MIN;a<=TIMES_MAX;a++)for(var b=TIMES_MIN;b<=TIMES_MAX;b++)QX.push({op:'x',a:a,b:b,k:a+'x'+b});
 for(var a=ADD_MIN;a<=ADD_MAX;a++)for(var b=ADD_MIN;b<=ADD_MAX;b++)QA.push({op:'+',a:a,b:b,k:a+'+'+b});
 function ans(x){return x.op==='+'?x.a+x.b:x.a*x.b}
@@ -213,8 +226,8 @@ function answer(b,v){if(busy||b.disabled)return;ac();var x=order[n];
   b.classList.add('no','shake');b.disabled=true;wrong()}
 function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);reveal(x);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
-  try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})}
-function wrong(){if(busy)return;var x=order[n];tries++;buzz();if(tries===1)noteMiss(x.k);
+  try{speechSynthesis.cancel()}catch(e){}whenAudio(cheer);fireworks();afterFx(function(){n++;n<order.length?show():end()})}
+function wrong(){if(busy)return;var x=order[n];tries++;whenAudio(buzz);if(tries===1)noteMiss(x.k);
   if(tries>=TRIES){busy=true;mark(false);reveal(x);var line=spoken(x)+' is '+ans(x);fb(x.a+' '+sign(x)+' '+x.b+' = '+ans(x),'info');
     setTimeout(function(){say(line)},850);setTimeout(function(){n++;n<order.length?show():end()},3800);return}
   fb('Please try again','no');setTimeout(function(){say('Please try again')},850)}
