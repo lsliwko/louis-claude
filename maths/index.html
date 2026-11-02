@@ -201,21 +201,24 @@ function noteHit(k){if(MISS[k]){MISS[k]--;if(!MISS[k])delete MISS[k];saveMiss()}
 function pickFrom(pool){var tot=0,ws=pool.map(function(v){var x=1+2*(MISS[v.k]||0);tot+=x;return x}),r=Math.random()*tot,i=0;
   while(r>=ws[i]){r-=ws[i];i++}return pool.splice(i,1)[0]}
 // Levels: start with small numbers and move up when he is doing well, back down when he is struggling.
-// Each level is the biggest number used in a question. Progress is kept per kind (adding, times) in this browser.
-var LEVELS={'+':[5,10,15,20,25],'x':[3,5,7,10]};
+// Each level is the [smallest, biggest] number used in a question. Times never uses 1 (too easy); adding starts at 1.
+// Progress is kept per kind (adding, times) in this browser.
+var LEVELS={'+':[[1,10],[1,15],[2,20],[2,25]],'x':[[2,5],[2,7],[2,10]]};
 var UP_WINDOW=8,UP_SCORE=7,DOWN_WINDOW=5,DOWN_SCORE=1.5;   // scores: right first time 1, right after a mistake 0.5, missed 0
-var LKEY='mx-level',LV={'+':{lv:0,h:[]},'x':{lv:0,h:[]}};
+var LKEY='mx-level-2',LV={'+':{lv:0,h:[]},'x':{lv:0,h:[]}};
 try{var sv=JSON.parse(localStorage.getItem(LKEY)||'null');if(sv&&sv['+']&&sv['x'])LV=sv}catch(e){}
 function saveLv(){try{localStorage.setItem(LKEY,JSON.stringify(LV))}catch(e){}}
-function cap(op){var L=LEVELS[op];return L[Math.max(0,Math.min(LV[op].lv,L.length-1))]}
+function range(op){var L=LEVELS[op];return L[Math.max(0,Math.min(LV[op].lv,L.length-1))]}
+function cap(op){return range(op)[1]}
 var moved={'+':0,'x':0};   // +1 / -1 if the level changed during this round
 function record(op,score){var r=LV[op];r.h.push(score);if(r.h.length>UP_WINDOW)r.h.shift();
   var sum=function(k){return r.h.slice(-k).reduce(function(a,b){return a+b},0)};
   if(r.h.length>=UP_WINDOW&&sum(UP_WINDOW)>=UP_SCORE&&r.lv<LEVELS[op].length-1){r.lv++;r.h=[];moved[op]=1}
   else if(r.h.length>=DOWN_WINDOW&&sum(DOWN_WINDOW)<=DOWN_SCORE&&r.lv>0){r.lv--;r.h=[];moved[op]=-1}
   saveLv()}
-function pickRound(k){var mx=cap('x'),ma=cap('+'),
-  px=QX.filter(function(q){return q.a<=mx&&q.b<=mx}),pa=QA.filter(function(q){return q.a<=ma&&q.b<=ma}),out=[];
+function inRange(q,r){return q.a>=r[0]&&q.a<=r[1]&&q.b>=r[0]&&q.b<=r[1]}
+function pickRound(k){var rx=range('x'),ra=range('+'),
+  px=QX.filter(function(q){return inRange(q,rx)}),pa=QA.filter(function(q){return inRange(q,ra)}),out=[];
   while(out.length<k)out.push(pickFrom(Math.random()<0.5?px:pa));return out}
 // Three believable wrong answers. Times: a neighbouring times-table answer, or the answer plus or minus a little.
 // Adding: the answer plus or minus 1 to 3, or 10 out (a common tens slip). Adding answers can be 0; times answers start at 1.
