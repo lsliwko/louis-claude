@@ -13,6 +13,10 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 2. In the game page, add a home button that links to `../` so it can get back to the menu.
 3. In the root `index.html`, copy the existing tile and change its link, colours, icon and name.
 
+## Deploying
+
+`.github/workflows/pages.yml` publishes the site to GitHub Pages on every push to `main` (only the game files: dot-folders, `README.md` and `AGENTS.md` are left out). A newer push cancels an older run that hasn't finished, so an old version can't overwrite a newer one. Pages must be set to **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
 ## Claude skill
 
 `.claude/skills/kids-mini-games/SKILL.md` holds the rules and conventions for building games here (design for a non-reader, speech and microphone handling on iPhone, stars, fireworks, testing). Claude Code loads it automatically when working in this repo, and `AGENTS.md` points other coding agents to it.

@@ -13,7 +13,7 @@ The repo is public: never put the child's name in files, commit messages or page
 
 ## Where things live
 
-- Repo: `lsliwko/louis-claude`, branch `main`. Attach it with `add_repo` (access `push`), clone it, and push straight to `main`. GitHub Pages serves `main` from the root.
+- Repo: `lsliwko/louis-claude`, branch `main`. Attach it with `add_repo` (access `push`), clone it, and push straight to `main`. GitHub Pages is published by the workflow `.github/workflows/pages.yml` on every push to `main` (Pages source: GitHub Actions); it copies only the site files (no dot-folders, README or AGENTS) and has `concurrency` with `cancel-in-progress: true`, so a newer push cancels an older run. After pushing, check the run with `gh run list --repo lsliwko/louis-claude --limit 3`.
 - `index.html` at the root is the **menu**: a 2-column grid of big picture tiles, one per game, plus an HTML comment showing how to add a tile.
 - Each game lives in **its own folder** with its own `index.html`, e.g. `tricky-words/`. Use a short kebab-case folder name that matches the game's display name ("Tricky Words" → `tricky-words/`).
 - `README.md` lists the layout and has one line per game. Update it whenever a game is added or its rules change.

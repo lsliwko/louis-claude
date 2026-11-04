@@ -1,0 +1,42 @@
+# Publishes the games to GitHub Pages on every push to main.
+# Needs Settings → Pages → Build and deployment → Source set to "GitHub Actions".
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:  # a newer push to the same branch cancels the older run
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Publish only the site: skip dot-folders (.claude, .github, .git) and the repo notes.
+      - name: Collect site files
+        run: |
+          mkdir _site
+          tar --exclude='./.*' --exclude='./_site' --exclude='./README.md' --exclude='./AGENTS.md' -cf - . | tar -xf - -C _site
+          find _site -type f
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
