@@ -23,8 +23,7 @@ Then read `.claude/skills/kids-mini-games/SKILL.md` for the rules and `docs/tool
 
 ## Open items
 
-- The user needs to set **Settings → Pages → Build and deployment → Source: GitHub Actions**. Until then GitHub's built-in "pages-build-deployment" also runs on each push. The proxy blocks changing Pages settings via `gh api`, so the user does it.
-- An old built-in run (41889451133) was stuck "queued" and couldn't be cancelled; ignore it.
+- Pages source is set to GitHub Actions (done 4 Nov), so only `pages.yml` deploys now.
 - Nothing else pending.
 
 ## How the user works
