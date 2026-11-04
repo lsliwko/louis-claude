@@ -11,6 +11,19 @@ The repo is public: never put the child's name in files, commit messages or page
 
 **Everything is British English:** spoken voice, speech recognition, page language (`<html lang="en-GB">`) and spelling in any text.
 
+## Work cheaply (saves tokens)
+
+1. Sync, don't re-clone: `cd ~/louis-claude && git fetch -q origin main && git reset -q --hard FETCH_HEAD` (clone only if the folder is missing).
+2. Don't read whole game files (each is ~300 dense lines). Find the spot with `grep -n 'anchor' game/index.html | cut -c1-160`, then edit with an exact-string replace (Edit, or Python with `assert s.count(old)==1`).
+3. Check with the repo tools, not new ad-hoc scripts:
+   - `node tools/check.js`: always; syntax of every page, house rules (en-GB, no zoom, no select), Tricky Words clashes and word frequencies, every Maths answer set and level range.
+   - `node tools/match.js WORD heard1 "heard 2"`: Y/n for reported mishearings.
+   - `python3 tools/smoke.py`: when behaviour or layout changed; every page at 320/390px, no errors or sideways scroll, a Maths answer. Add `--scribble` for drawing changes and `--shots` (saves to `/tmp/game-shots/`) only when visuals changed, then look at just the one relevant screenshot.
+   - Extend these tools when a new game or rule needs checking, rather than writing one-off tests.
+4. Commit, push, then `bash tools/deploy-status.sh` (waits and prints one line).
+5. Keep replies short: what changed, what was checked, "live in a minute or two".
+6. Update this repo copy of the skill as rules change; send the full account-skill card only when the user asks for it.
+
 ## Where things live
 
 - Repo: `lsliwko/louis-claude`, branch `main`. Attach it with `add_repo` (access `push`), clone it, and push straight to `main`. GitHub Pages is published by the workflow `.github/workflows/pages.yml` on every push to `main` (Pages source: GitHub Actions); it copies only the site files (no dot-folders, README or AGENTS) and has `concurrency` with `cancel-in-progress: true`, so a newer push cancels an older run. After pushing, check the run with `gh run list --repo lsliwko/louis-claude --limit 3`.

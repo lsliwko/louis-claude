@@ -17,6 +17,13 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 
 `.github/workflows/pages.yml` publishes the site to GitHub Pages on every push to `main` (only the game files: dot-folders, `README.md` and `AGENTS.md` are left out). A newer push cancels an older run that hasn't finished, so an old version can't overwrite a newer one. Pages must be set to **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
+## Tools
+
+- `node tools/check.js`: quick checks for every page (syntax, house rules, Tricky Words clashes and frequencies, Maths answers and levels).
+- `node tools/match.js WORD heard...`: whether what the phone heard counts for a Tricky Words word.
+- `python3 tools/smoke.py [--scribble] [--shots]`: opens every game in a headless phone-sized browser.
+- `bash tools/deploy-status.sh`: waits for the latest Pages deploy and prints the result.
+
 ## Claude skill
 
 `.claude/skills/kids-mini-games/SKILL.md` holds the rules and conventions for building games here (design for a non-reader, speech and microphone handling on iPhone, stars, fireworks, testing). Claude Code loads it automatically when working in this repo, and `AGENTS.md` points other coding agents to it.
