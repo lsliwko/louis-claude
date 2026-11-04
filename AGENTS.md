@@ -4,7 +4,9 @@ This repo is a small set of learning games for a 5-year-old who can't read yet. 
 
 ## Before you change anything
 
-Read `.claude/skills/kids-mini-games/SKILL.md` first. It holds the rules for every game: design for a non-reader, the speech and microphone handling that works on iPhone, stars, sounds and fireworks, round length and tries, and how to test.
+**Always re-read `docs/handover.md` at the start of every session** (current state, open items, how the user works), and update it before the session ends. Tools are described in `docs/tools.md`.
+
+Then read `.claude/skills/kids-mini-games/SKILL.md`. It holds the rules for every game: design for a non-reader, the speech and microphone handling that works on iPhone, stars, sounds and fireworks, round length and tries, and how to test.
 
 ## Layout
 

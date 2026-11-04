@@ -13,6 +13,7 @@ The repo is public: never put the child's name in files, commit messages or page
 
 ## Work cheaply (saves tokens)
 
+0. Read `docs/handover.md` first (current state and open items), and update it before finishing. `docs/tools.md` is the tools reference.
 1. Sync, don't re-clone: `cd /home/claude/louis-claude && git fetch -q origin main && git reset -q --hard FETCH_HEAD` (the clone usually lives in `/home/claude/louis-claude`; clone only if it's missing).
 2. Don't read whole game files (each is ~300 dense lines). Find the spot with `grep -n 'anchor' game/index.html | cut -c1-160`, then edit with an exact-string replace (Edit, or Python with `assert s.count(old)==1`).
 3. Check with the repo tools, not new ad-hoc scripts:

@@ -15,9 +15,11 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 
 ## Deploying
 
-`.github/workflows/pages.yml` publishes the site to GitHub Pages on every push to `main` (only the game files: dot-folders, `README.md` and `AGENTS.md` are left out). A newer push cancels an older run that hasn't finished, so an old version can't overwrite a newer one. Pages must be set to **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+`.github/workflows/pages.yml` publishes the site to GitHub Pages on every push to `main` (only the game files: dot-folders, `docs/`, `README.md` and `AGENTS.md` are left out). A newer push cancels an older run that hasn't finished, so an old version can't overwrite a newer one. Pages must be set to **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ## Tools
+
+Full reference: `docs/tools.md`. Session handover notes: `docs/handover.md`.
 
 - `node tools/check.js`: quick checks for every page (syntax, house rules, Tricky Words clashes and frequencies, Maths answers and levels).
 - `node tools/match.js WORD heard...`: whether what the phone heard counts for a Tricky Words word.

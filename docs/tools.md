@@ -1,0 +1,82 @@
+# Tools
+
+Small scripts in `tools/` that replace ad-hoc testing. Run them from the repo root. Each prints one short line per check, so the output is cheap to read.
+
+| Tool | When to run | Takes |
+|---|---|---|
+| `node tools/check.js` | Before every push | ~2 s |
+| `node tools/match.js WORD heard...` | A word is misheard or wrongly accepted | instant |
+| `python3 tools/smoke.py` | Behaviour or layout changed | ~10 s |
+| `python3 tools/smoke.py --scribble` | Scribble shapes or scoring changed | ~1 min |
+| `python3 tools/smoke.py --shots` | Something visual changed | ~10 s |
+| `bash tools/deploy-status.sh [sha]` | Right after pushing | 1–2 min |
+
+## `node tools/check.js`
+
+Static checks, no browser. Exit code 1 if anything fails.
+
+- **syntax** of every page's `<script>` (the menu and every `*/index.html`).
+- **house rules** on every page: `lang="en-GB"`, `user-scalable=no`, Safari gesture blocking (`gesturestart`) and selection blocking (`selectstart`).
+- **Tricky Words clashes**: no game word is accepted for another game word (through sound-alikes, patterns or fuzzy matching).
+- **Tricky Words frequency** (information only, never fails): the `NEW` batch and, for each word, the share of 4000 simulated rounds it appears in, with no misses remembered. The `NEW` words should be at the top.
+- **Maths answers**: for every question (3 tries each, since options are random) there are exactly `CHOICES` different options, one is right, and none is below 0 (below 1 for times).
+- **Maths levels**: rounds picked at the starting levels only use numbers inside those levels' ranges.
+
+Example output:
+
+```
+ok   syntax index.html
+ok   rules  index.html - en-GB, no zoom, no select
+...
+ok   tricky clashes - 13 words, none
+     tricky NEW=the,of,all,are | are 70% the 70% all 69% of 69% we 26% I 25% ...
+ok   maths answers - 776 questions
+ok   maths levels - start: adding 0-5, times 2-5
+```
+
+## `node tools/match.js WORD heard...`
+
+Checks what the iPhone heard against one Tricky Words word, using the game's own matching code. Quote phrases.
+
+```
+$ node tools/match.js the duh yeah tea "there there" she
+duh:Y  yeah:Y  tea:Y  there there:Y  she:n
+```
+
+Use it to confirm a reported mishearing fails before adding it to the word's `s:[...]` list, then passes after. `she:n` above is correct: another game word never counts.
+
+## `python3 tools/smoke.py [--scribble] [--shots]`
+
+Opens every page (the menu and every game) in headless Chromium with touch, at 320 px and 390 px wide, and reports one line per page and width:
+
+- page loads with no JavaScript errors;
+- no sideways scrolling;
+- Maths (at 390 px): taps the right answer and checks it scores.
+
+It doesn't test speech recognition or real sound: those can only be tried on the phone.
+
+Options:
+
+- `--scribble`: also traces every one of the 62 Scribble shapes, row by row with a little wobble like a child's finger, and checks each one earns a star.
+- `--shots`: saves a 390 px screenshot of each page to `/tmp/game-shots/` (`index.html.png`, `maths_index.html.png`, `scribble_index.html.png`, `tricky-words_index.html.png`). Look only at the one you need.
+
+## `bash tools/deploy-status.sh [sha]`
+
+Waits for the "Deploy to GitHub Pages" run of the commit you just pushed (default: `HEAD`), then prints one line:
+
+```
+deploy success e90e535 Skill: fix the sync path and point testing at the repo tools
+```
+
+If it failed, it also prints up to 5 error lines from the log. It gives up after 2 minutes if no run appears and 5 minutes if the run doesn't finish. Needs the `gh` CLI (pre-installed and authenticated in Claude sessions).
+
+## `tools/lib.js` (for extending the tools)
+
+Shared helpers that load a game's code straight from its `index.html`, so the tools always test the real game:
+
+- `page(game)`, `scripts(html)`, `main(game)`: the page, its scripts, its main script.
+- `between(js, from, to)`: the code between two anchor strings (throws if an anchor is missing, so a renamed anchor fails loudly).
+- `tricky()`: `{W, matches, NEW, pickRound, norm}` from Tricky Words.
+- `maths()`: `{QX, QA, ans, options, pickRound, range, record, LV, LEVELS, CHOICES}` from Maths, with a fake `localStorage`.
+
+When a new game or rule needs checking, add a loader here and a check to `check.js` or `smoke.py` rather than writing a one-off script.

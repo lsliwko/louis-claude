@@ -29,7 +29,7 @@ jobs:
       - name: Collect site files
         run: |
           mkdir _site
-          tar --exclude='./.*' --exclude='./_site' --exclude='./README.md' --exclude='./AGENTS.md' -cf - . | tar -xf - -C _site
+          tar --exclude='./.*' --exclude='./_site' --exclude='./README.md' --exclude='./AGENTS.md' --exclude='./docs' -cf - . | tar -xf - -C _site
           find _site -type f
 
       - uses: actions/configure-pages@v5
