@@ -101,6 +101,8 @@ var W=[
   "that","thats","this","these","those","them","then","than","uh","a","ah","er","err","ur","huh","um"]},
 {w:"do",s:["do","doo","du","due","dew","dues","dude","doom","dune","dooh"]},
 {w:"of",s:["of","off","ov","ove","uv","uff","av","love","above","have","oven","oh","o","uh","a","ah"]},
+{w:"all",s:["all","awl","al","ol","oll","aul","orl","or","awe","aw","owl","hall","ole"]},
+{w:"are",s:["are","r","ar","arr","aar","our","hour","ah","aah","re"]},
 {w:"was",s:["was","woz","wuz","what","whats","horse","hoss","wars","war","worse","wasp","wash","wuss","oz","does","boss","laws"]}
 ];
 function $(id){return document.getElementById(id)}
@@ -176,7 +178,7 @@ function tick(){fctx.clearRect(0,0,innerWidth,innerHeight);fctx.lineCap='round';
 
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 // NEW: the current batch of new words; they come up much more often.
-var NEW=['the','we','do','of','me'];
+var NEW=['the','of','all','are'];
 var MKEY='tw-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(w){MISS[w]=Math.min((MISS[w]||0)+1,5);saveMiss()}
