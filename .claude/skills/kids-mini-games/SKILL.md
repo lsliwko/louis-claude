@@ -13,7 +13,7 @@ The repo is public: never put the child's name in files, commit messages or page
 
 ## Work cheaply (saves tokens)
 
-1. Sync, don't re-clone: `cd ~/louis-claude && git fetch -q origin main && git reset -q --hard FETCH_HEAD` (clone only if the folder is missing).
+1. Sync, don't re-clone: `cd /home/claude/louis-claude && git fetch -q origin main && git reset -q --hard FETCH_HEAD` (the clone usually lives in `/home/claude/louis-claude`; clone only if it's missing).
 2. Don't read whole game files (each is ~300 dense lines). Find the spot with `grep -n 'anchor' game/index.html | cut -c1-160`, then edit with an exact-string replace (Edit, or Python with `assert s.count(old)==1`).
 3. Check with the repo tools, not new ad-hoc scripts:
    - `node tools/check.js`: always; syntax of every page, house rules (en-GB, no zoom, no select), Tricky Words clashes and word frequencies, every Maths answer set and level range.
@@ -80,7 +80,7 @@ The repo is public: never put the child's name in files, commit messages or page
 
 ## Testing (in the workspace, before pushing)
 
-- Syntax check: `node -e` with `new Function(<script body>)`.
+- Start with `node tools/check.js` and `python3 tools/smoke.py` (see Work cheaply); the points below are for things those don't cover yet.
 - Use Playwright (Chromium is pre-installed) with a **fake `SpeechRecognition`** injected via `add_init_script`. It should fire `onaudiostart`/`onresult`/`onend` according to a queued plan, so you can test right, wrong, silence and the auto-retry.
 - Call `right()` directly to time the fireworks and screenshot them, and check the next question appears after the show.
 - Unit-test the matching function against the reported mishearings, and check that no game word is accepted for another.
