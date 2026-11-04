@@ -24,7 +24,7 @@ Then read `.claude/skills/kids-mini-games/SKILL.md` for the rules and `docs/tool
 ## Open items
 
 - Pages source is set to GitHub Actions (done 4 Nov), so only `pages.yml` deploys now.
-- Scribble speech on Safari (4 Nov): the first tap now unlocks speech so the prompt is heard without pressing the speaker. Not testable here; waiting for the user to confirm on the iPhone. Maths speaks only after taps, so it shouldn't need this.
+- Scribble speech on Safari (4 Nov): the first tap now unlocks speech so the prompt is heard without pressing the speaker. Not testable here; waiting for the user to confirm on the iPhone. Maths got the same unlock (a silent word on the first tap), since its "Please try again" is said from a timer.
 - Nothing else pending. (The GitHub incident that blocked deploys on the evening of 4 Nov cleared by itself: the 22:50 run succeeded. If a run ever fails with "due to in progress deployment … cancel … first" again, check githubstatus.com and wait rather than retrying in a loop; as a last resort ask the user to switch Pages source to "Deploy from a branch" and back to "GitHub Actions".)
 
 ## How the user works

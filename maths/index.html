@@ -176,7 +176,7 @@ function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(functio
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 function say(t){try{var ss=window.speechSynthesis;if(!ss)return;
   if(!VOICE)pickVoice();
-  var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;ss.resume();ss.speak(UTT)}catch(e){}};
+  var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;UTT.onstart=function(){spoken=true};ss.resume();ss.speak(UTT)}catch(e){}};
   if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120)}else go()}catch(e){}}
 function fb(t,k){var f=$('fb');f.textContent=t;f.className='fb'+(k?' '+k:'')}
 var STAR='<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/>',res=[];
@@ -229,6 +229,12 @@ function options(x){var c=ans(x),lo=x.op==='+'?0:1,cand=x.op==='+'?[c+1,c-1,c+2,
   return shuf([c].concat(out))}
 var ROUND=5,order=pickRound(ROUND),n=0,score=0,tries=0,busy=false;
 function spoken(x){return x.a+(x.op==='+'?' plus ':' times ')+x.b}
+// Safari only speaks once speech has been started inside a tap; later words said from timers are dropped until then.
+// So the first tap (other than the speaker button, which speaks itself) starts a silent word.
+var spoken=false;
+function unlockSpeech(e){if(spoken)return;spoken=true;var t=e&&e.target,b=t&&t.closest&&t.closest('button');if(b&&b.id==='hear')return;
+  try{var u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='en-GB';speechSynthesis.speak(u)}catch(x){}}
+document.addEventListener('touchend',unlockSpeech,true);document.addEventListener('click',unlockSpeech,true);
 $('hear').onclick=function(){if(!lock('hear'))return;ac();var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(spoken(order[n])+' is?')};
 function show(){var x=order[n];tries=0;busy=false;
   $('prog').textContent='Question '+(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';
