@@ -50,6 +50,9 @@ button:active{transform:scale(.97)}
 .hear:disabled{opacity:.3;cursor:default}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @keyframes pulse{50%{transform:scale(1.03)}}
+/* the picture word under the buttons: first letter bold in the accent colour, the rest lighter */
+.word-hint{margin:0;min-height:56px;text-align:center;font-family:var(--display);font-weight:500;font-size:44px;line-height:1.2;color:var(--soft);letter-spacing:.5px}
+.word-hint b{font-weight:700;color:var(--accent)}
 #padbox{width:100%;display:flex;justify-content:center}
 #pad{display:block;border-radius:18px;background:var(--card);touch-action:none!important;cursor:crosshair}
 .card.pad{padding:14px}
@@ -79,6 +82,7 @@ button:active{transform:scale(.97)}
       <button class="hear tool" id="hear" type="button" aria-label="Hear what to draw"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
       <button class="tool" id="erase" type="button" aria-label="Rub out and start again"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 20h12"/><path d="M5.5 15.5 14 7a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L11 20H8l-2.5-2.5a1.4 1.4 0 0 1 0-2z"/><path d="M9.5 11.5l5 5"/></svg></button>
     </div>
+    <p class="word-hint" id="hint" aria-live="polite"></p>
     <p class="fb" id="fb" aria-live="polite"></p>
   </div>
 </div>
@@ -186,6 +190,9 @@ function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math
 // Shapes to draw: lowercase letters and digits, with how to say each one (British letter names, so z is "zed").
 var NAMES={a:'ay',b:'bee',c:'see',d:'dee',e:'ee',f:'eff',g:'jee',h:'aitch',i:'eye',j:'jay',k:'kay',l:'ell',m:'em',n:'en',o:'oh',p:'pee',
   q:'queue',r:'ar',s:'ess',t:'tee',u:'you',v:'vee',w:'double you',x:'ex',y:'why',z:'zed'};
+// A word for each letter, shown under the buttons with its first letter in bold (numbers have no word).
+var WORDS={a:'apple',b:'ball',c:'cat',d:'dog',e:'egg',f:'fish',g:'goat',h:'hat',i:'insect',j:'jam',k:'kite',l:'lion',m:'moon',
+  n:'nest',o:'octopus',p:'pig',q:'queen',r:'rabbit',s:'sun',t:'tree',u:'umbrella',v:'van',w:'web',x:'x-ray',y:'yo-yo',z:'zebra'};
 var DIGITS=['zero','one','two','three','four','five','six','seven','eight','nine'];
 var Q=[];Object.keys(NAMES).forEach(function(c){Q.push({c:c,k:c,say:'the letter '+NAMES[c]})});
 DIGITS.forEach(function(w,i){Q.push({c:String(i),k:String(i),say:'the number '+w})});
@@ -249,6 +256,9 @@ function clearPad(){strokes=[];cur=null;if(glyph)buildMask(glyph);redraw()}
 
 function show(){var x=order[n];tries=0;busy=false;done=false;
   $('prog').textContent=(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';fb('');
+  var w=WORDS[x.c],h=$('hint');h.textContent='';
+  if(w){var bb=document.createElement('b');bb.textContent=w.charAt(0);h.appendChild(bb);h.appendChild(document.createTextNode(w.slice(1)));h.style.visibility='visible'}
+  else h.style.visibility='hidden';
   glyph=x.c;strokes=[];buildMask(glyph);sizePad();setTimeout(function(){say('Draw '+x.say)},300)}
 function right(){if(busy)return;busy=true;done=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);redraw(css('--good'));
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
