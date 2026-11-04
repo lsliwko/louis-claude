@@ -96,7 +96,7 @@ try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
 var unlocked=false;
 function ac(){try{if(!AC||AC.state==='closed')AC=new(window.AudioContext||window.webkitAudioContext)();
   if(AC.state!=='running'){var p=AC.resume();if(p&&p.catch)p.catch(function(){})}
-  if(!unlocked){var s=AC.createBufferSource();s.buffer=AC.createBuffer(1,1,22050);s.connect(AC.destination);s.start(0);unlocked=true}}catch(e){AC=null}return AC}
+  if(!unlocked||AC.state!=='running'){var s=AC.createBufferSource();s.buffer=AC.createBuffer(1,1,22050);s.connect(AC.destination);s.start(0);unlocked=true}}catch(e){AC=null}return AC}
 function whenAudio(fn){var c=ac();if(!c)return;if(c.state==='running'){fn();return}
   var done=false,go=function(){if(!done&&c.state==='running'){done=true;fn()}};
   try{c.resume().then(go,function(){})}catch(e){}setTimeout(go,300)}
@@ -178,8 +178,16 @@ function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(functio
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 function say(t){try{var ss=window.speechSynthesis;if(!ss)return;
   if(!VOICE)pickVoice();
-  var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;ss.resume();ss.speak(UTT)}catch(e){}};
+  var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;UTT.onstart=function(){spoken=true};ss.resume();ss.speak(UTT)}catch(e){}};
   if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120)}else go()}catch(e){}}
+// Safari only speaks once speech has been started inside a tap, so the prompt said on load is silent there.
+// The first tap anywhere (if nothing has been heard yet) says the prompt again, or a silent word when a button will speak or the shape was just judged.
+var spoken=false;
+function unlockSpeech(e){if(spoken)return;spoken=true;var t=e&&e.target,b=t&&t.closest&&t.closest('button,a');
+  if(b&&b.id==='hear')return;
+  if(!b&&!busy&&!done&&order&&order[n]&&!$('card').hidden){say(order[n].say);return}
+  try{var u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='en-GB';speechSynthesis.speak(u)}catch(x){}}
+document.addEventListener('touchend',unlockSpeech,true);document.addEventListener('click',unlockSpeech,true);
 function fb(t,k){var f=$('fb');f.textContent=t;f.className='fb'+(k?' '+k:'')}
 var STAR='<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/>',res=[];
 function drawStars(){var h='';for(var i=0;i<res.length;i++)h+='<svg class="st'+(res[i]?' '+res[i]:'')+'" viewBox="0 0 24 24" aria-hidden="true">'+STAR+'</svg>';$('stars').innerHTML=h;
@@ -199,7 +207,7 @@ var Q=[];Object.keys(NAMES).forEach(function(c){var said=NAMES[c]+' like '+WORDS
   Q.push({c:c,k:c,word:WORDS[c],say:said});Q.push({c:c.toUpperCase(),k:c.toUpperCase(),word:WORDS[c].charAt(0).toUpperCase()+WORDS[c].slice(1),say:said})});
 DIGITS.forEach(function(w,i){Q.push({c:String(i),k:String(i),say:'Draw number '+w})});
 // Checking the drawing: the shape counts as done when most of it is covered and not too much ink is off the shape.
-var COVER=0.8,OUTSIDE=0.45,TRIES=3;   // two messy tries are allowed; the third moves on
+var COVER=0.9,OUTSIDE=0.45,TRIES=3;   // two messy tries are allowed; the third moves on
 var MKEY='sc-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(k){MISS[k]=Math.min((MISS[k]||0)+1,5);saveMiss()}
