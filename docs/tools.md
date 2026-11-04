@@ -68,7 +68,7 @@ Waits for the "Deploy to GitHub Pages" run of the commit you just pushed (defaul
 deploy success e90e535 Skill: fix the sync path and point testing at the repo tools
 ```
 
-If it failed, it also prints up to 5 error lines from the log. It gives up after 2 minutes if no run appears and 5 minutes if the run doesn't finish. Needs the `gh` CLI (pre-installed and authenticated in Claude sessions).
+If it failed, it also prints up to 5 error lines from the log. It gives up after 2 minutes if no run appears and 5 minutes if the run doesn't finish. If it failed with "due to in progress deployment", another deploy was still running (usually GitHub's built-in one, until Pages source is set to GitHub Actions): wait about 20 s, then `gh run rerun <run id> --repo lsliwko/louis-claude` and run this tool again. Needs the `gh` CLI (pre-installed and authenticated in Claude sessions).
 
 ## `tools/lib.js` (for extending the tools)
 
