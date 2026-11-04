@@ -1,0 +1,23 @@
+# Cancels a Pages deployment that is stuck "in progress", which blocks every new deploy
+# ("Deployment request failed ... due to in progress deployment. Please cancel <sha> first").
+# tools/deploy-status.sh starts this automatically; it can also be run by hand from the Actions tab.
+name: Cancel a stuck Pages deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA of the stuck deployment (from the error message)
+        required: true
+
+permissions:
+  pages: write
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ inputs.sha }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/deployments/$SHA/cancel" && echo "cancelled $SHA"
