@@ -57,7 +57,7 @@ It doesn't test speech recognition or real sound: those can only be tried on the
 
 Options:
 
-- `--scribble`: also traces every one of the 62 Scribble shapes, row by row with a little wobble like a child's finger, and checks each one earns a star.
+- `--scribble`: also traces every one of the 62 Scribble shapes, row by row with a little wobble like a child's finger, and checks each one earns a star (printing the most ink any shape had outside, against the limit); then scribbles zigzags over the whole pad for four shapes and checks none earns a star.
 - `--shots`: saves a 390 px screenshot of each page to `/tmp/game-shots/` (`index.html.png`, `maths_index.html.png`, `scribble_index.html.png`, `tricky-words_index.html.png`). Look only at the one you need.
 
 ## `bash tools/deploy-status.sh [sha]`

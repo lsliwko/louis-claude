@@ -25,7 +25,7 @@ with sync_playwright() as p:
                 c = pg.evaluate('ans(order[n])'); pg.click(f".opt:text-is('{c}')"); pg.wait_for_timeout(200)
                 report('maths right answer gives a gold star', pg.evaluate("res[0]==='ok'"))
             if g == 'scribble/index.html' and w == 390 and full:
-                pg.evaluate('afterFx=function(){};fireworks=function(){};say=function(){}'); missed = []
+                pg.evaluate('afterFx=function(){};fireworks=function(){};say=function(){}'); missed = []; worst = 0
                 for ch in pg.evaluate('Q.map(q=>q.c)'):
                     pg.evaluate(f'order[n]=Q.find(q=>q.c==={ch!r});res=[];show()')
                     info = pg.evaluate("(()=>{const b=pad.getBoundingClientRect(),rows=[];for(let y=0;y<G;y+=4){let s=null;for(let x=0;x<=G;x++){const on=x<G&&mask[x+y*G];if(on&&s===null)s=x;if(!on&&s!==null){rows.push([s,x-1,y]);s=null}}}return {l:b.left,t:b.top,k:S/G,rows}})()")
@@ -36,7 +36,19 @@ with sync_playwright() as p:
                         pg.mouse.move(info['l'] + (x1 + .5) * k + j(), info['t'] + (y + .5) * k + j(), steps=4); pg.mouse.up()
                         if pg.evaluate('busy||tries>0'): break
                     if pg.evaluate("res[0]!=='ok'"): missed.append(ch)
-                report('scribble wobbly tracing earns a star', not missed, ('failed: ' + ' '.join(missed)) if missed else 'all shapes')
+                    worst = max(worst, pg.evaluate('outside()'))
+                report('scribble wobbly tracing earns a star', not missed, ('failed: ' + ' '.join(missed)) if missed else 'all shapes, most ink outside %d%% (limit %d%%)' % (worst * 100, pg.evaluate('OUTSIDE') * 100))
+                # scribbling zigzags over the whole pad must not earn a star
+                scrib = []
+                for ch in ['o', 'l', 'A', '7']:
+                    pg.evaluate(f'order[n]=Q.find(q=>q.c==={ch!r});res=[];show()')
+                    b = pg.evaluate('(()=>{const r=pad.getBoundingClientRect();return [r.left,r.top,r.width,r.height]})()')
+                    pg.mouse.move(b[0] + 4, b[1] + 4); pg.mouse.down()
+                    for i in range(1, 25):
+                        pg.mouse.move(b[0] + (b[2] - 8 if i % 2 else 4), b[1] + 4 + i * (b[3] - 8) / 24, steps=6)
+                    pg.mouse.up()
+                    if pg.evaluate("res[0]==='ok'"): scrib.append(ch)
+                report('scribble scribbling over the pad gets no star', not scrib, ('starred: ' + ' '.join(scrib)) if scrib else 'o l A 7')
             pg.close()
     b.close()
 sys.exit(1 if fails else 0)

@@ -207,7 +207,7 @@ var Q=[];Object.keys(NAMES).forEach(function(c){var said=NAMES[c]+' like '+WORDS
   Q.push({c:c,k:c,word:WORDS[c],say:said});Q.push({c:c.toUpperCase(),k:c.toUpperCase(),word:WORDS[c].charAt(0).toUpperCase()+WORDS[c].slice(1),say:said})});
 DIGITS.forEach(function(w,i){Q.push({c:String(i),k:String(i),say:'Draw number '+w})});
 // Checking the drawing: the shape counts as done when most of it is covered and not too much ink is off the shape.
-var COVER=0.9,OUTSIDE=0.45,TRIES=3;   // two messy tries are allowed; the third moves on
+var COVER=0.9,OUTSIDE=0.25,TRIES=3;   // two messy tries are allowed; the third moves on
 var MKEY='sc-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(k){MISS[k]=Math.min((MISS[k]||0)+1,5);saveMiss()}
@@ -232,7 +232,7 @@ function stamp(rad){var o=[];for(var dy=-Math.ceil(rad);dy<=rad;dy++)for(var dx=
 function buildMask(ch){var c=document.createElement('canvas');c.width=c.height=G;var x=c.getContext('2d');drawGlyph(x,ch,G,'#000');
   var d=x.getImageData(0,0,G,G).data;mask=new Uint8Array(G*G);dil=new Uint8Array(G*G);touched=new Uint8Array(G*G);ink=new Uint8Array(G*G);maskN=0;
   for(var i=0;i<G*G;i++)if(d[i*4+3]>110){mask[i]=1;maskN++}
-  var dr=Math.round(G*0.06),st=stamp(dr);for(i=0;i<G*G;i++)if(mask[i]){var px=i%G;for(var j=0;j<st.length;j++){var k=i+st[j],kx=k%G;if(k>=0&&k<G*G&&Math.abs(kx-px)<=dr)dil[k]=1}}
+  var dr=Math.round(G*0.03),st=stamp(dr);for(i=0;i<G*G;i++)if(mask[i]){var px=i%G;for(var j=0;j<st.length;j++){var k=i+st[j],kx=k%G;if(k>=0&&k<G*G&&Math.abs(kx-px)<=dr)dil[k]=1}}
   covN=inkN=outN=0;R=G*0.085;r=G*0.045;stampR=stamp(R);stampr=stamp(r)}
 function markAt(gx,gy){var cx=Math.round(gx),cy=Math.round(gy),base=cx+cy*G,i,k,kx;
   for(i=0;i<stampR.length;i++){k=base+stampR[i];kx=k%G;if(k<0||k>=G*G||Math.abs(kx-cx)>R+1)continue;if(!touched[k]){touched[k]=1;if(mask[k])covN++}}
