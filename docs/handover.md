@@ -24,6 +24,7 @@ Then read `.claude/skills/kids-mini-games/SKILL.md` for the rules and `docs/tool
 ## Open items
 
 - Pages source is set to GitHub Actions (done 4 Nov), so only `pages.yml` deploys now.
+- **Deploys blocked since 22:43 on 4 Nov** by a GitHub incident ("Incident with Actions and Pages", githubstatus.com): every run fails with "due to in progress deployment. Please cancel 0574466… first", although that deployment shows as finished (cancelling it says "it's finished"). The live site is 0574466, which has all the game changes; only docs and tool changes came after, and those aren't published anyway. First thing next session: push or run `gh workflow run pages.yml --repo lsliwko/louis-claude --ref main`, then `bash tools/deploy-status.sh`. If it still clashes after the incident is over, ask the user to switch Pages source to "Deploy from a branch" and back to "GitHub Actions".
 - Nothing else pending.
 
 ## How the user works
