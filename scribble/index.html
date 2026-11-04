@@ -187,15 +187,17 @@ function drawStars(){var h='';for(var i=0;i<res.length;i++)h+='<svg class="st'+(
 function mark(ok){res[n]=ok?'ok':'miss';drawStars();var el=$('stars').children[n];if(el)el.classList.add('pop')}
 
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
-// Shapes to draw: lowercase letters and digits, with how to say each one (British letter names, so z is "zed").
+// Shapes to draw: lowercase and capital letters and digits, with how to say each one (British letter names, so z is "zed").
 var NAMES={a:'ay',b:'bee',c:'see',d:'dee',e:'ee',f:'eff',g:'jee',h:'aitch',i:'eye',j:'jay',k:'kay',l:'ell',m:'em',n:'en',o:'oh',p:'pee',
   q:'queue',r:'ar',s:'ess',t:'tee',u:'you',v:'vee',w:'double you',x:'ex',y:'why',z:'zed'};
 // A word for each letter, shown under the buttons with its first letter in bold (numbers have no word).
 var WORDS={a:'apple',b:'ball',c:'cat',d:'dog',e:'egg',f:'fish',g:'goat',h:'hat',i:'insect',j:'jam',k:'kite',l:'lion',m:'moon',
   n:'nest',o:'octopus',p:'pig',q:'queen',r:'rabbit',s:'sun',t:'tree',u:'umbrella',v:'van',w:'web',x:'x-ray',y:'yo-yo',z:'zebra'};
 var DIGITS=['zero','one','two','three','four','five','six','seven','eight','nine'];
-var Q=[];Object.keys(NAMES).forEach(function(c){Q.push({c:c,k:c,say:'the letter '+NAMES[c]})});
-DIGITS.forEach(function(w,i){Q.push({c:String(i),k:String(i),say:'the number '+w})});
+// Letters are said as "queue like queen"; numbers as "draw number seven". Capitals use the same words, with a capital first letter.
+var Q=[];Object.keys(NAMES).forEach(function(c){var said=NAMES[c]+' like '+WORDS[c];
+  Q.push({c:c,k:c,word:WORDS[c],say:said});Q.push({c:c.toUpperCase(),k:c.toUpperCase(),word:WORDS[c].charAt(0).toUpperCase()+WORDS[c].slice(1),say:said})});
+DIGITS.forEach(function(w,i){Q.push({c:String(i),k:String(i),say:'Draw number '+w})});
 // Checking the drawing: the shape counts as done when most of it is covered and not too much ink is off the shape.
 var COVER=0.8,OUTSIDE=0.45,TRIES=3;   // two messy tries are allowed; the third moves on
 var MKEY='sc-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
@@ -256,10 +258,10 @@ function clearPad(){strokes=[];cur=null;if(glyph)buildMask(glyph);redraw()}
 
 function show(){var x=order[n];tries=0;busy=false;done=false;
   $('prog').textContent=(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';fb('');
-  var w=WORDS[x.c],h=$('hint');h.textContent='';
+  var w=x.word,h=$('hint');h.textContent='';
   if(w){var bb=document.createElement('b');bb.textContent=w.charAt(0);h.appendChild(bb);h.appendChild(document.createTextNode(w.slice(1)));h.style.visibility='visible'}
   else h.style.visibility='hidden';
-  glyph=x.c;strokes=[];buildMask(glyph);sizePad();setTimeout(function(){say('Draw '+x.say)},300)}
+  glyph=x.c;strokes=[];buildMask(glyph);sizePad();setTimeout(function(){say(x.say)},300)}
 function right(){if(busy)return;busy=true;done=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);redraw(css('--good'));
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   try{speechSynthesis.cancel()}catch(e){}whenAudio(cheer);fireworks();afterFx(function(){n++;n<order.length?show():end()})}
@@ -268,7 +270,7 @@ function wrong(){if(busy)return;var x=order[n];tries++;whenAudio(buzz);if(tries=
     setTimeout(function(){say("Let's try the next one")},850);setTimeout(function(){n++;n<order.length?show():end()},3000);return}
   fb('Stay on the shape. Try again!','no');setTimeout(function(){say('Stay on the shape. Please try again')},850)}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}
-$('hear').onclick=function(){if(!lock('hear'))return;ac();var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say('Draw '+order[n].say)};
+$('hear').onclick=function(){if(!lock('hear'))return;ac();var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].say)};
 $('erase').onclick=function(){if(!lock('erase')||busy)return;clearPad()};
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
