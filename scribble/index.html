@@ -180,8 +180,8 @@ function tick(){fctx.clearRect(0,0,innerWidth,innerHeight);fctx.lineCap='round';
 
 var VOICE=null,UTT=null;
 function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(function(v){return /^en[-_]GB/i.test(v.lang)});
-  // Standard British voice first: enhanced/premium ones are slow to start on older iPhones (drawing froze while they loaded).
-  var rank=function(v){var nm=v.name||'';return (/premium|enhanced|neural|natural/i.test(nm)?2:0)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
+  // Enhanced/premium British voice first (the user prefers how they sound); the standard one only if none is installed.
+  var rank=function(v){var nm=v.name||'';return (/premium|enhanced|neural|natural/i.test(nm)?0:2)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
   vs.sort(function(a,b){return rank(a)-rank(b)});VOICE=vs[0]||null}catch(e){}}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 function say(t){try{var ss=window.speechSynthesis;if(!ss)return;
