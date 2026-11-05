@@ -270,7 +270,11 @@ function pos(e){var b=pad.getBoundingClientRect();return [Math.max(0,Math.min(S,
 var drawing=null;
 pad.addEventListener('pointerdown',function(e){if(busy||done)return;e.preventDefault();ac();if(drawing!==null)return;drawing=e.pointerId;try{pad.setPointerCapture(e.pointerId)}catch(_){}
   cur=[];strokes.push(cur);var p=pos(e);addPoint(p[0],p[1])});
-pad.addEventListener('pointermove',function(e){if(e.pointerId!==drawing)return;e.preventDefault();var p=pos(e);addPoint(p[0],p[1])});
+// When the phone is busy (e.g. starting to speak), finger moves arrive in one batch: draw every point in it, not only the last,
+// or the stroke becomes a straight line. (iPhone Safari 18.2 gives batched points the wrong pointerId, so don't check theirs.)
+pad.addEventListener('pointermove',function(e){if(e.pointerId!==drawing)return;e.preventDefault();
+  var evs=[];try{evs=e.getCoalescedEvents?e.getCoalescedEvents():[]}catch(_){}if(!evs||!evs.length)evs=[e];
+  for(var i=0;i<evs.length;i++){var p=pos(evs[i]);addPoint(p[0],p[1])}});
 function lift(e){if(e.pointerId!==drawing)return;drawing=null;check()}
 pad.addEventListener('pointerup',lift);pad.addEventListener('pointercancel',lift);
 // After each finger lift: enough of the shape covered? Then it is a star if the ink is tidy, or a try again if it is messy.

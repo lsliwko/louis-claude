@@ -44,6 +44,14 @@ with sync_playwright() as p:
                 report('scribble start button speaks inside the tap', shown and gone and sync > 0, 'shown %s, hidden after tap %s, speak during tap %d' % (shown, gone, sync))
             if g == 'scribble/index.html' and w == 390 and full:
                 pg.evaluate('afterFx=function(){};fireworks=function(){};say=function(){}'); missed = []; worst = 0
+                # busy phone: a whole stroke (down the l and back up to the middle) arrives as one pointermove with the points batched (coalesced); all of them must be drawn
+                bat = pg.evaluate('''(()=>{order[n]=Q.find(q=>q.c==='l');res=[];show();const b=pad.getBoundingClientRect(),cx=b.left+b.width/2;
+                  const pt=(y,id)=>({clientX:cx,clientY:b.top+y*b.height,pointerId:id,bubbles:true,cancelable:true,isPrimary:true,pointerType:'touch'});
+                  pad.dispatchEvent(new PointerEvent('pointerdown',pt(0.08,7)));
+                  const co=[];for(let i=1;i<=40;i++)co.push(new PointerEvent('pointermove',pt(0.08+i*0.02,99)));for(let i=1;i<=19;i++)co.push(new PointerEvent('pointermove',pt(0.88-i*0.02,99)));
+                  pad.dispatchEvent(new PointerEvent('pointermove',Object.assign(pt(0.5,7),{coalescedEvents:co})));
+                  const c=coverage();pad.dispatchEvent(new PointerEvent('pointerup',pt(0.5,7)));busy=false;done=false;res=[];return c})()''')
+                report('scribble batched finger moves draw the whole stroke', bat > 0.9, 'covered %d%% of l from one batched move' % (bat * 100))
                 for ch in pg.evaluate('Q.map(q=>q.c)'):
                     pg.evaluate(f'order[n]=Q.find(q=>q.c==={ch!r});res=[];show()')
                     info = pg.evaluate("(()=>{const b=pad.getBoundingClientRect(),rows=[];for(let y=0;y<G;y+=4){let s=null;for(let x=0;x<=G;x++){const on=x<G&&mask[x+y*G];if(on&&s===null)s=x;if(!on&&s!==null){rows.push([s,x-1,y]);s=null}}}return {l:b.left,t:b.top,k:S/G,ri:r,rows}})()")
