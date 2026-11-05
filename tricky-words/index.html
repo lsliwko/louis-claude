@@ -107,7 +107,21 @@ var W=[
 ];
 function $(id){return document.getElementById(id)}
 var AC=null;
-function ac(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){AC=null}return AC}
+// iPhone pauses the sound engine ('interrupted') whenever the microphone or speech takes over, and it can stay paused,
+// so resume it whenever it isn't running (not only when 'suspended'), recreate it if closed, and wake it on every tap.
+var unlocked=false;
+function ac(){try{if(!AC||AC.state==='closed'){AC=new(window.AudioContext||window.webkitAudioContext)();unlocked=false;
+    AC.onstatechange=function(){try{if(AC&&AC.state!=='running'&&AC.state!=='closed'){var q=AC.resume();if(q&&q.catch)q.catch(function(){})}}catch(e){}}}
+  if(AC.state!=='running'){var p=AC.resume();if(p&&p.catch)p.catch(function(){})}
+  if(!unlocked||AC.state!=='running'){var b=AC.createBufferSource();b.buffer=AC.createBuffer(1,1,22050);b.connect(AC.destination);b.start(0);unlocked=true}}catch(e){AC=null}return AC}
+function whenAudio(fn){var c=ac();if(!c)return;if(c.state==='running'){fn();return}
+  var done=false,go=function(){if(!done&&c.state==='running'){done=true;fn()}};
+  try{c.resume().then(go,function(){})}catch(e){}setTimeout(go,300);setTimeout(go,900)}
+// Play a sound only once the microphone has closed (or 0.7s at most), so it doesn't clash with the mic switching off.
+function afterMic(fn){Promise.race([prevEnd,new Promise(function(r){setTimeout(r,700)})]).then(function(){setTimeout(function(){whenAudio(fn)},120)})}
+document.addEventListener('pointerdown',function(){ac()},true);
+document.addEventListener('touchend',function(){ac()},true);
+window.addEventListener('pageshow',function(e){if(e.persisted){AC=null;unlocked=false}});
 function noiseBuf(c,sec){var b=c.createBuffer(1,Math.floor(c.sampleRate*sec),c.sampleRate),d=b.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b}
 function cheer(){var c=ac();if(!c)return;var t=c.currentTime+0.05,out=c.createGain();out.gain.value=0.9;out.connect(c.destination);
   [523.25,659.25,783.99,1046.5].forEach(function(f,i){var o=c.createOscillator(),g=c.createGain(),st=t+i*0.12,len=i===3?0.6:0.16;
@@ -132,7 +146,7 @@ var fx=document.getElementById('fx'),fctx=fx.getContext('2d'),parts=[],flashes=[
   COLS=['#FF5A5F','#FFC145','#3DDC97','#4CC9F0','#B388FF','#FF8FD8','#FF9F43','#FFFFFF'];
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function sizeFx(){var r=window.devicePixelRatio||1;fx.width=innerWidth*r;fx.height=innerHeight*r;fctx.setTransform(r,0,0,r,0,0)}
-function boom(){var c=AC;if(!c)return;try{var t=c.currentTime,src=c.createBufferSource(),lp=c.createBiquadFilter(),g=c.createGain();
+function boom(){var c=AC;if(!c||c.state!=='running')return;try{var t=c.currentTime,src=c.createBufferSource(),lp=c.createBiquadFilter(),g=c.createGain();
   src.buffer=noiseBuf(c,0.6);lp.type='lowpass';lp.frequency.value=500;g.gain.setValueAtTime(0.4,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.55);
   src.connect(lp);lp.connect(g);g.connect(c.destination);src.start(t);src.stop(t+0.6)}catch(e){}}
 function spark(x,y,vx,vy,col,o){parts.push({x:x,y:y,px:x,py:y,vx:vx,vy:vy,c:col,life:0,max:o.max||70,r:o.r||2.2,drag:o.drag||0.975,grav:o.grav||0.05,tw:o.tw||false,crackle:o.crackle||false,kind:o.kind||'spark'})}
@@ -206,8 +220,8 @@ function show(){var x=order[n];tries=0;busy=false;
   $('word').textContent=x.w;fb('')}
 function right(){if(busy)return;busy=true;score++;mark(true);if(tries===0)noteHit(order[n].w);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
-  try{speechSynthesis.cancel()}catch(e){}cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})}
-function wrong(m){if(busy)return;tries++;buzz();if(tries===1)noteMiss(order[n].w);
+  try{speechSynthesis.cancel()}catch(e){}afterMic(cheer);fireworks();afterFx(function(){n++;n<order.length?show():end()})}
+function wrong(m){if(busy)return;tries++;afterMic(buzz);if(tries===1)noteMiss(order[n].w);
   // Two mistakes are allowed; the third wrong try moves on.
   if(tries>=3){busy=true;mark(false);fb("Let's try the next one",'info');setTimeout(function(){say("Let's try the next one")},850);
     setTimeout(function(){n++;n<order.length?show():end()},3000);return}
