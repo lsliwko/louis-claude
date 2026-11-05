@@ -33,6 +33,7 @@ h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.1;mar
 .tile:active{transform:scale(.97)}
 .tile:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .icon{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.grown{align-self:center;color:var(--soft);font-size:15px;text-decoration:none;padding:8px 14px;border-radius:999px;border:1px solid var(--line)}
 .name{font-family:var(--display);font-weight:700;font-size:20px;line-height:1.2;text-align:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -61,6 +62,8 @@ h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.1;mar
       <span class="name">Scribble</span>
     </a>
   </nav>
+  <!-- For grown-ups: choose the voice the games use -->
+  <a class="grown" href="voices/">Voice</a>
 </div>
 <script>
 // No pinch or double-tap zoom (Safari ignores user-scalable=no, so block its gesture events too).

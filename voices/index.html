@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Voice</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@400;600;700&display=swap">
+<style>
+/* For grown-ups: hear the British voices on this phone and choose the one every game uses (saved on this phone) */
+:root{
+  --ground:#EEF4FB; --card:#FFFFFF; --ink:#1C2647; --soft:#5A6485; --line:#D5DEEC; --accent:#2F5BEA; --accent-bg:#E3EAFE; --good:#1F7A4D; --good-bg:#DFF3E8;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#10162A; --card:#1A2240; --ink:#EEF2FF; --soft:#A9B2D3; --line:#2E3963; --accent:#8EA8FF; --accent-bg:#26326A; --good:#7FD8A8; --good-bg:#173D2B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#10162A; --card:#1A2240; --ink:#EEF2FF; --soft:#A9B2D3; --line:#2E3963; --accent:#8EA8FF; --accent-bg:#26326A; --good:#7FD8A8; --good-bg:#173D2B; color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body,*{touch-action:manipulation}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:max(20px,env(safe-area-inset-top,0px)) max(32px,env(safe-area-inset-bottom,0px))}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;gap:12px}
+.home{width:52px;height:52px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:2px solid var(--line);color:var(--accent);flex:none}
+h1{font-family:var(--display);font-weight:700;font-size:32px;line-height:1.1;margin:0}
+p{margin:0;color:var(--soft)}
+.list{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.row{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:10px 12px}
+.row.on{border-color:var(--good);background:var(--good-bg)}
+.who{flex:1;min-width:0}
+.who b{display:block;font-weight:700;overflow-wrap:anywhere}
+.who small{color:var(--soft);font-size:14px}
+button{font:inherit;cursor:pointer;border-radius:999px;border:2px solid var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:700;min-height:44px}
+.play{width:48px;height:48px;padding:0;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.use{padding:0 16px;flex:none}
+.row.on .use{border-color:var(--good);background:var(--good);color:#fff}
+.auto{align-self:flex-start;padding:0 18px}
+.help{font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="home" href="../" aria-label="Back to all games"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></a><h1>Voice</h1></div>
+  <p>The British voices on this phone. Tap ▶ to hear one and <b>Use</b> to choose it for every game. The choice is saved on this phone.</p>
+  <ul class="list" id="list"></ul>
+  <button class="auto" id="auto" type="button">Let the games choose</button>
+  <p class="help" id="none" hidden>No British voices found yet. Wait a moment, or add one in the phone's settings (below).</p>
+  <p class="help">More voices: on iPhone, Settings › Accessibility › Spoken Content (called Read &amp; Speak on newer iPhones) › Voices › English, then pick a UK voice and download it. Enhanced and Premium versions sound most natural. Siri's own voices can't be used by web pages. Then come back here and reopen this page.</p>
+</div>
+<script>
+function $(id){return document.getElementById(id)}
+var SAMPLE='Bee like ball. Well done! Three times four is twelve.',KEY='voice';
+function saved(){try{return localStorage.getItem(KEY)||''}catch(e){return''}}
+function save(n){try{n?localStorage.setItem(KEY,n):localStorage.removeItem(KEY)}catch(e){}}
+function kind(v){var n=v.name||'';return /premium/i.test(n)?'Premium':/enhanced/i.test(n)?'Enhanced':/neural|natural/i.test(n)?'Natural':'Standard'}
+function voices(){try{return (speechSynthesis.getVoices()||[]).filter(function(v){return /^en[-_]GB/i.test(v.lang)})}catch(e){return[]}}
+function hear(v){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(SAMPLE);u.voice=v;u.lang='en-GB';u.rate=0.8;speechSynthesis.speak(u)}catch(e){}}
+function draw(){var vs=voices(),cur=saved(),L=$('list');L.innerHTML='';$('none').hidden=vs.length>0;
+  var order={Premium:0,Enhanced:1,Natural:1,Standard:2};
+  vs.sort(function(a,b){return order[kind(a)]-order[kind(b)]||a.name.localeCompare(b.name)});
+  vs.forEach(function(v){var li=document.createElement('li');li.className='row'+(v.name===cur?' on':'');
+    var w=document.createElement('div');w.className='who';var b=document.createElement('b');b.textContent=v.name;var s=document.createElement('small');s.textContent=kind(v)+(v.localService===false?' · needs internet':'');w.appendChild(b);w.appendChild(s);
+    var p=document.createElement('button');p.className='play';p.type='button';p.setAttribute('aria-label','Hear '+v.name);
+    p.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg>';p.onclick=function(){hear(v)};
+    var u=document.createElement('button');u.className='use';u.type='button';u.textContent=v.name===cur?'Chosen':'Use';u.onclick=function(){save(v.name);draw();hear(v)};
+    li.appendChild(p);li.appendChild(w);li.appendChild(u);L.appendChild(li)});
+  $('auto').textContent=cur?'Let the games choose':'The games are choosing';}
+$('auto').onclick=function(){save('');draw()};
+draw();try{speechSynthesis.onvoiceschanged=draw}catch(e){}setTimeout(draw,600);setTimeout(draw,2000);
+// No pinch or double-tap zoom (Safari ignores user-scalable=no, so block its gesture events too).
+['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
+document.addEventListener('dblclick',function(e){e.preventDefault()},{passive:false});
+document.addEventListener('selectstart',function(e){if(!(e.target&&e.target.closest&&e.target.closest('p')))e.preventDefault()});
+</script>
+</body>
+</html>

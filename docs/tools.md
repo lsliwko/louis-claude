@@ -16,7 +16,7 @@ Small scripts in `tools/` that replace ad-hoc testing. Run them from the repo ro
 Static checks, no browser. Exit code 1 if anything fails.
 
 - **syntax** of every page's `<script>` (the menu and every `*/index.html`).
-- **voice**: every game ranks enhanced/premium en-GB voices first (the user's choice).
+- **voice**: every game uses the voice chosen on the Voice page, else ranks enhanced/premium en-GB voices first.
 - **names**: no `var` shares a name with a function on the same page (the variable would replace the function).
 - **house rules** on every page: `lang="en-GB"`, `user-scalable=no`, Safari gesture blocking (`gesturestart`) and selection blocking (`selectstart`).
 - **Tricky Words clashes**: no game word is accepted for another game word (through sound-alikes, patterns or fuzzy matching).
@@ -54,6 +54,7 @@ Opens every page (the menu and every game) in headless Chromium with touch, at 3
 
 - page loads with no JavaScript errors;
 - no sideways scrolling;
+- Voice page (at 390 px): with pretend voices, lists only British ones, chooses one, and checks Scribble then uses it (and goes back to an enhanced one when the choice is cleared).
 - Maths (at 390 px): taps the right answer and checks it scores; then, on a fresh page, taps two wrong answers and checks it moves to the next question with a grey star and no errors.
 
 It doesn't test speech recognition or real sound: those can only be tried on the phone.

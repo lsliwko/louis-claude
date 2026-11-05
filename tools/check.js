@@ -16,7 +16,7 @@ for (const p of pages) { const html = fs.readFileSync(path.join(L.ROOT, p), 'utf
   const dup = [...fns].filter(f => vars.has(f));
   ok('names  ' + p, !dup.length, dup.length ? 'variable and function share a name: ' + dup.join(', ') : '');
   const rk = (code.match(/var rank=function\(v\)\{.*?\}\}?/) || [''])[0];
-  if (rk) ok('voice  ' + p, /enhanced[^?]*\?0:2/.test(rk), 'enhanced/premium en-GB voice ranked first');
+  if (rk) ok('voice  ' + p, /enhanced[^?]*\?0:2/.test(rk) && /localStorage\.getItem\('voice'\)/.test(code), 'uses the voice chosen on the Voice page, else enhanced/premium en-GB first');
   ok('rules  ' + p, /lang="en-GB"/.test(html) && /user-scalable=no/.test(html) && /gesturestart/.test(html) && /selectstart/.test(html), 'en-GB, no zoom, no select');
 }
 
