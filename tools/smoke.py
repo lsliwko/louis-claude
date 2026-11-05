@@ -28,9 +28,11 @@ with sync_playwright() as p:
                 pg.evaluate('afterFx=function(){};fireworks=function(){};say=function(){}'); missed = []; worst = 0
                 for ch in pg.evaluate('Q.map(q=>q.c)'):
                     pg.evaluate(f'order[n]=Q.find(q=>q.c==={ch!r});res=[];show()')
-                    info = pg.evaluate("(()=>{const b=pad.getBoundingClientRect(),rows=[];for(let y=0;y<G;y+=4){let s=null;for(let x=0;x<=G;x++){const on=x<G&&mask[x+y*G];if(on&&s===null)s=x;if(!on&&s!==null){rows.push([s,x-1,y]);s=null}}}return {l:b.left,t:b.top,k:S/G,rows}})()")
+                    info = pg.evaluate("(()=>{const b=pad.getBoundingClientRect(),rows=[];for(let y=0;y<G;y+=4){let s=null;for(let x=0;x<=G;x++){const on=x<G&&mask[x+y*G];if(on&&s===null)s=x;if(!on&&s!==null){rows.push([s,x-1,y]);s=null}}}return {l:b.left,t:b.top,k:S/G,ri:r,rows}})()")
                     k = info['k']
                     for x0, x1, y in info['rows']:
+                        # keep the finger's centre inside the shape (a child follows the stroke, not swiping past its edges)
+                        ri = info['ri']; x0, x1 = (x0 + ri, x1 - ri) if x1 - x0 > 2 * ri else ((x0 + x1) / 2,) * 2
                         j = lambda: random.uniform(-3, 3) * k
                         pg.mouse.move(info['l'] + (x0 + .5) * k + j(), info['t'] + (y + .5) * k + j()); pg.mouse.down()
                         pg.mouse.move(info['l'] + (x1 + .5) * k + j(), info['t'] + (y + .5) * k + j(), steps=4); pg.mouse.up()
@@ -38,14 +40,31 @@ with sync_playwright() as p:
                     if pg.evaluate("res[0]!=='ok'"): missed.append(ch)
                     worst = max(worst, pg.evaluate('outside()'))
                 report('scribble wobbly tracing earns a star', not missed, ('failed: ' + ' '.join(missed)) if missed else 'all shapes, most ink outside %d%% (limit %d%%)' % (worst * 100, pg.evaluate('OUTSIDE') * 100))
+                # following the middle of every stroke (its skeleton) must cover enough of the shape and keep the ink on it
+                try:
+                    import numpy as np
+                    from skimage.morphology import skeletonize
+                    from scipy.ndimage import binary_dilation
+                    def disc(rad):
+                        q = int(np.ceil(rad)); yy, xx = np.mgrid[-q:q + 1, -q:q + 1]; return xx * xx + yy * yy <= rad * rad
+                    low = []
+                    for ch in pg.evaluate('Q.map(q=>q.c)'):
+                        d = pg.evaluate(f'(()=>{{order[n]=Q.find(q=>q.c==={ch!r});show();return {{m:Array.from(mask),d:Array.from(dil),R,r,G,C:COVER,O:OUTSIDE}}}})()')
+                        G = d['G']; m = np.array(d['m'], bool).reshape(G, G); dl = np.array(d['d'], bool).reshape(G, G); sk = skeletonize(m)
+                        cov = (binary_dilation(sk, disc(d['R'])) & m).sum() / m.sum(); ink = binary_dilation(sk, disc(d['r']))
+                        out = (ink & ~dl).sum() / ink.sum(); low.append((cov, ch, out))
+                    low.sort(); bad = [c for v, c, o in low if v < d['C'] or o > d['O']]
+                    report('scribble centre-line tracing covers the shape', not bad, ('failed: ' + ' '.join(bad)) if bad else 'lowest %s %d%% (need %d%%)' % (low[0][1], low[0][0] * 100, d['C'] * 100))
+                except ImportError:
+                    print('skip scribble centre-line check (needs numpy, scikit-image, scipy)')
                 # scribbling zigzags over the whole pad must not earn a star
                 scrib = []
                 for ch in ['o', 'l', 'A', '7']:
                     pg.evaluate(f'order[n]=Q.find(q=>q.c==={ch!r});res=[];show()')
-                    b = pg.evaluate('(()=>{const r=pad.getBoundingClientRect();return [r.left,r.top,r.width,r.height]})()')
-                    pg.mouse.move(b[0] + 4, b[1] + 4); pg.mouse.down()
+                    bx = pg.evaluate('(()=>{const r=pad.getBoundingClientRect();return [r.left,r.top,r.width,r.height]})()')
+                    pg.mouse.move(bx[0] + 4, bx[1] + 4); pg.mouse.down()
                     for i in range(1, 25):
-                        pg.mouse.move(b[0] + (b[2] - 8 if i % 2 else 4), b[1] + 4 + i * (b[3] - 8) / 24, steps=6)
+                        pg.mouse.move(bx[0] + (bx[2] - 8 if i % 2 else 4), bx[1] + 4 + i * (bx[3] - 8) / 24, steps=6)
                     pg.mouse.up()
                     if pg.evaluate("res[0]==='ok'"): scrib.append(ch)
                 report('scribble scribbling over the pad gets no star', not scrib, ('starred: ' + ' '.join(scrib)) if scrib else 'o l A 7')

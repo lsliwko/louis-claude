@@ -223,17 +223,17 @@ var mask,dil,touched,ink,maskN=0,covN=0,inkN=0,outN=0,R=0,r=0,stampR=[],stampr=[
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
 // Size and place a shape: every shape uses the same font size (like handwriting lines), shrunk only if it would not fit,
 // and is centred in the pad by its own outline.
-function drawGlyph(c,ch,size,colour){var F=size*0.86;c.textAlign='left';c.textBaseline='alphabetic';
+function drawGlyph(c,ch,size,colour){var F=size*1.25;c.textAlign='left';c.textBaseline='alphabetic';
   var box=function(f){c.font='700 '+f+'px '+FONT;var m=c.measureText(ch);
     return {l:m.actualBoundingBoxLeft||0,r:m.actualBoundingBoxRight||m.width,a:m.actualBoundingBoxAscent||f*0.7,d:m.actualBoundingBoxDescent||0}};
-  var b=box(F),sc=Math.min(1,size*0.84/(b.l+b.r),size*0.84/(b.a+b.d));if(sc<1)b=box(F*sc);
+  var b=box(F),sc=Math.min(1,size*0.9/(b.l+b.r),size*0.9/(b.a+b.d));if(sc<1)b=box(F*sc);
   c.fillStyle=colour;c.fillText(ch,size/2-(b.r-b.l)/2,size/2+(b.a-b.d)/2)}
 function stamp(rad){var o=[];for(var dy=-Math.ceil(rad);dy<=rad;dy++)for(var dx=-Math.ceil(rad);dx<=rad;dx++)if(dx*dx+dy*dy<=rad*rad)o.push(dx+dy*G);return o}
 function buildMask(ch){var c=document.createElement('canvas');c.width=c.height=G;var x=c.getContext('2d');drawGlyph(x,ch,G,'#000');
   var d=x.getImageData(0,0,G,G).data;mask=new Uint8Array(G*G);dil=new Uint8Array(G*G);touched=new Uint8Array(G*G);ink=new Uint8Array(G*G);maskN=0;
   for(var i=0;i<G*G;i++)if(d[i*4+3]>110){mask[i]=1;maskN++}
   var dr=Math.round(G*0.03),st=stamp(dr);for(i=0;i<G*G;i++)if(mask[i]){var px=i%G;for(var j=0;j<st.length;j++){var k=i+st[j],kx=k%G;if(k>=0&&k<G*G&&Math.abs(kx-px)<=dr)dil[k]=1}}
-  covN=inkN=outN=0;R=G*0.085;r=G*0.045;stampR=stamp(R);stampr=stamp(r)}
+  covN=inkN=outN=0;R=G*0.12;r=G*0.063;stampR=stamp(R);stampr=stamp(r)}
 function markAt(gx,gy){var cx=Math.round(gx),cy=Math.round(gy),base=cx+cy*G,i,k,kx;
   for(i=0;i<stampR.length;i++){k=base+stampR[i];kx=k%G;if(k<0||k>=G*G||Math.abs(kx-cx)>R+1)continue;if(!touched[k]){touched[k]=1;if(mask[k])covN++}}
   for(i=0;i<stampr.length;i++){k=base+stampr[i];kx=k%G;if(k<0||k>=G*G||Math.abs(kx-cx)>r+1)continue;if(!ink[k]){ink[k]=1;inkN++;if(!dil[k])outN++}}}
@@ -245,12 +245,12 @@ function redraw(fill){pctx.clearRect(0,0,S,S);if(!glyph)return;
   // faint guide lines, the shape to cover, then the child's ink on top
   pctx.strokeStyle=css('--line');pctx.lineWidth=1;pctx.setLineDash([6,6]);[0.27,0.5,0.73].forEach(function(f){pctx.beginPath();pctx.moveTo(8,S*f);pctx.lineTo(S-8,S*f);pctx.stroke()});pctx.setLineDash([]);
   drawGlyph(pctx,glyph,S,fill||css('--shape'));
-  pctx.lineCap=pctx.lineJoin='round';pctx.lineWidth=S*0.105;pctx.strokeStyle=fill?'rgba(0,0,0,0)':css('--ink-pen');
+  pctx.lineCap=pctx.lineJoin='round';pctx.lineWidth=S*0.147;pctx.strokeStyle=fill?'rgba(0,0,0,0)':css('--ink-pen');
   strokes.forEach(function(s){if(!s.length)return;pctx.beginPath();pctx.moveTo(s[0][0],s[0][1]);if(s.length===1)pctx.lineTo(s[0][0]+0.1,s[0][1]);for(var i=1;i<s.length;i++)pctx.lineTo(s[i][0],s[i][1]);pctx.stroke()})}
 function addPoint(x,y){var g=G/S,last=cur.length?cur[cur.length-1]:null;cur.push([x,y]);
   if(last){var dx=x-last[0],dy=y-last[1],steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)*g/0.5));for(var i=1;i<=steps;i++)markAt((last[0]+dx*i/steps)*g,(last[1]+dy*i/steps)*g)}
   else markAt(x*g,y*g);
-  pctx.lineCap=pctx.lineJoin='round';pctx.lineWidth=S*0.105;pctx.strokeStyle=css('--ink-pen');pctx.beginPath();
+  pctx.lineCap=pctx.lineJoin='round';pctx.lineWidth=S*0.147;pctx.strokeStyle=css('--ink-pen');pctx.beginPath();
   if(last)pctx.moveTo(last[0],last[1]);else pctx.moveTo(x-0.1,y);pctx.lineTo(x,y);pctx.stroke()}
 function pos(e){var b=pad.getBoundingClientRect();return [Math.max(0,Math.min(S,e.clientX-b.left)),Math.max(0,Math.min(S,e.clientY-b.top))]}
 var drawing=null;
