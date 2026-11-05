@@ -54,7 +54,13 @@ button:active{transform:scale(.97)}
 .word-hint{margin:0;min-height:56px;display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;font-family:var(--display);font-weight:500;font-size:44px;line-height:1.2;color:var(--soft);letter-spacing:.5px}
 .word-hint b{font-weight:700;color:var(--accent)}
 .word-hint .pic{font-size:44px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;margin-right:2px}
-#padbox{width:100%;display:flex;justify-content:center}
+#padbox{width:100%;display:flex;justify-content:center;position:relative}
+/* Start button over the pad: on iPhone only a real tap turns sound on, and drawing (a moving finger) never counts as one */
+.go{position:absolute;inset:0;margin:0;padding:0;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.go[hidden]{display:none}
+.go span{width:128px;height:128px;border-radius:50%;background:var(--btn);color:var(--on-btn);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(47,91,234,.35);animation:gopulse 1.6s ease-in-out infinite}
+@keyframes gopulse{50%{transform:scale(1.08)}}
+@media (prefers-reduced-motion: reduce){.go span{animation:none}}
 #pad{display:block;border-radius:18px;background:var(--card);touch-action:none!important;cursor:crosshair}
 .card.pad{padding:14px}
 .tools{display:flex;justify-content:center;gap:28px}
@@ -76,7 +82,7 @@ button:active{transform:scale(.97)}
 <div class="wrap">
   <div class="top"><a class="home" href="../" aria-label="Back to all games"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></a><span id="prog" style="flex:1;margin-left:12px">1 of 5</span><span class="stars" id="stars" aria-label="Stars"></span></div>
   <div class="bar"><i id="bar"></i></div>
-  <div class="card pad" id="card"><div id="padbox"><canvas id="pad" aria-label="Drawing pad"></canvas></div></div>
+  <div class="card pad" id="card"><div id="padbox"><canvas id="pad" aria-label="Drawing pad"></canvas><button class="go" id="go" type="button" aria-label="Start"><span><svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.5 5.5v13l10-6.5z"/></svg></span></button></div></div>
   <div class="card end" id="endcard" hidden></div>
   <div id="ctrl" style="display:flex;flex-direction:column;gap:12px">
     <div class="tools">
@@ -277,7 +283,7 @@ function show(){var x=order[n];tries=0;busy=false;done=false;
   var w=x.word,h=$('hint');h.textContent='';
   if(w){if(x.pic){var pc=document.createElement('span');pc.className='pic';pc.setAttribute('aria-hidden','true');pc.textContent=x.pic;h.appendChild(pc)}var bb=document.createElement('b');bb.textContent=w.charAt(0);var wd=document.createElement('span');wd.appendChild(bb);wd.appendChild(document.createTextNode(w.slice(1)));h.appendChild(wd);h.style.visibility='visible'}
   else h.style.visibility='hidden';
-  glyph=x.c;strokes=[];buildMask(glyph);sizePad();setTimeout(function(){say(x.say)},300)}
+  glyph=x.c;strokes=[];buildMask(glyph);sizePad();if($('go').hidden)setTimeout(function(){say(x.say)},300)}
 function right(){if(busy)return;busy=true;done=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);redraw(css('--good'));
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   try{speechSynthesis.cancel()}catch(e){}whenAudio(cheer);fireworks();afterFx(function(){n++;n<order.length?show():end()})}
@@ -286,7 +292,10 @@ function wrong(){if(busy)return;var x=order[n];tries++;whenAudio(buzz);if(tries=
     setTimeout(function(){say("Let's try the next one")},850);setTimeout(function(){n++;n<order.length?show():end()},3000);return}
   fb('Stay on the shape. Try again!','no');setTimeout(function(){say('Stay on the shape. Please try again')},850)}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}
-$('hear').onclick=function(){if(!lock('hear'))return;ac();var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].say)};
+// The start tap turns on sound and speech (inside the tap), then says what to draw. The speaker button does the same.
+function begin(){var g=$('go');if(g.hidden)return false;g.hidden=true;spoken=true;ac();return true}
+$('go').onclick=function(){if(!begin())return;say(order[n].say)};
+$('hear').onclick=function(){begin();if(!lock('hear'))return;ac();var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].say)};
 $('erase').onclick=function(){if(!lock('erase')||busy)return;clearPad()};
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
