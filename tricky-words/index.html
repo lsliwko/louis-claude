@@ -203,7 +203,8 @@ function pickRound(k){var pool=W.slice(),out=[];
 var ROUND=5,order=pickRound(ROUND),n=0,score=0,tries=0,busy=false,rec=null,SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 var VOICE=null,UTT=null;
 function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(function(v){return /^en[-_]GB/i.test(v.lang)});
-  var rank=function(v){var nm=v.name||'';return (/premium|enhanced|neural|natural/i.test(nm)?0:1)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
+  // Standard British voice first: enhanced/premium ones are slow to start on older iPhones (drawing froze while they loaded).
+  var rank=function(v){var nm=v.name||'';return (/premium|enhanced|neural|natural/i.test(nm)?2:0)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
   vs.sort(function(a,b){return rank(a)-rank(b)});VOICE=vs[0]||null}catch(e){}}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 function say(t){try{var ss=window.speechSynthesis;if(!ss)return;

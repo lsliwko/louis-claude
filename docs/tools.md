@@ -16,6 +16,7 @@ Small scripts in `tools/` that replace ad-hoc testing. Run them from the repo ro
 Static checks, no browser. Exit code 1 if anything fails.
 
 - **syntax** of every page's `<script>` (the menu and every `*/index.html`).
+- **voice**: every game ranks the standard en-GB voice before enhanced/premium ones.
 - **names**: no `var` shares a name with a function on the same page (the variable would replace the function).
 - **house rules** on every page: `lang="en-GB"`, `user-scalable=no`, Safari gesture blocking (`gesturestart`) and selection blocking (`selectstart`).
 - **Tricky Words clashes**: no game word is accepted for another game word (through sound-alikes, patterns or fuzzy matching).
