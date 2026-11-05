@@ -26,6 +26,7 @@ Then read `.claude/skills/kids-mini-games/SKILL.md` for the rules and `docs/tool
 - Pages source is set to GitHub Actions (done 4 Nov), so only `pages.yml` deploys now.
 - Scribble speech on Safari (4 Nov): the first tap now unlocks speech so the prompt is heard without pressing the speaker. Not testable here; waiting for the user to confirm on the iPhone. Maths got the same unlock (a silent word on the first tap), since its "Please try again" is said from a timer.
 - Tricky Words fireworks sound stopping after a few rounds (5 Nov): sound engine now restarts from iPhone's "interrupted" state and the cheer/buzz wait for the mic to close. Tested with a fake mic only; waiting for the user to confirm on the iPhone.
+- Scribble (5 Nov): the first touch didn't speak on iPhone (the load prompt sat in the queue and `say` waited 120ms after cancel, losing the tap); fixed. The user also can't draw while the prompt is spoken: not reproducible here. Suspect iPhone loading an enhanced voice; asked whether it's only the first prompt and whether the line appears late or never.
 - Nothing else pending. (The GitHub incident that blocked deploys on the evening of 4 Nov cleared by itself: the 22:50 run succeeded. If a run ever fails with "due to in progress deployment … cancel … first" again, check githubstatus.com and wait rather than retrying in a loop; as a last resort ask the user to switch Pages source to "Deploy from a branch" and back to "GitHub Actions".)
 
 ## How the user works

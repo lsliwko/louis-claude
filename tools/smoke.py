@@ -25,6 +25,12 @@ with sync_playwright() as p:
                 c = pg.evaluate('ans(order[n])'); pg.click(f".opt:text-is('{c}')"); pg.wait_for_timeout(200)
                 report('maths right answer gives a gold star', pg.evaluate("res[0]==='ok'"))
             if g == 'scribble/index.html' and w == 390 and full:
+                # first touch after opening: the load-time prompt is stuck in the queue (as on iPhone); speech must start inside the touch, not after a delay
+                sync = pg.evaluate('''(()=>{spoken=false;let calls=0;const ss=speechSynthesis,sp=ss.speak.bind(ss);
+                  Object.defineProperty(ss,'pending',{configurable:true,get:()=>true});ss.speak=function(u){calls++};
+                  pad.dispatchEvent(new TouchEvent('touchend',{bubbles:true,cancelable:true}));
+                  const c=calls;ss.speak=sp;delete ss.pending;return c})()''')
+                report('scribble first touch speaks inside the touch', sync > 0, 'speak called %d time(s) during the touch' % sync)
                 pg.evaluate('afterFx=function(){};fireworks=function(){};say=function(){}'); missed = []; worst = 0
                 for ch in pg.evaluate('Q.map(q=>q.c)'):
                     pg.evaluate(f'order[n]=Q.find(q=>q.c==={ch!r});res=[];show()')

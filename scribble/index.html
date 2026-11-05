@@ -179,10 +179,12 @@ function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(functio
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
 function say(t){try{var ss=window.speechSynthesis;if(!ss)return;
   if(!VOICE)pickVoice();
-  var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;UTT.onstart=function(){spoken=true};ss.resume();ss.speak(UTT)}catch(e){}};
-  if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120)}else go()}catch(e){}}
-// Safari only speaks once speech has been started inside a tap, so the prompt said on load is silent there.
-// The first tap anywhere (if nothing has been heard yet) says the prompt again, or a silent word when a button will speak or the shape was just judged.
+  var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;ss.resume();ss.speak(UTT)}catch(e){}};
+  // Speak straight away (iPhone only speaks inside the tap itself, not after a delay); if a browser drops speech
+  // right after cancel, try once more when nothing is queued.
+  if(ss.speaking||ss.pending){ss.cancel();go();setTimeout(function(){if(!ss.speaking&&!ss.pending)go()},400)}else go()}catch(e){}}
+// iPhone only speaks once speech has been started inside a tap, so the prompt said on load is silent there (it just sits in the queue).
+// So the first tap anywhere says the prompt again, or a silent word when a button will speak or the shape was just judged.
 var spoken=false;
 function unlockSpeech(e){if(spoken)return;spoken=true;var t=e&&e.target,b=t&&t.closest&&t.closest('button,a');
   if(b&&b.id==='hear')return;
