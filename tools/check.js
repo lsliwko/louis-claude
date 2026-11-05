@@ -10,6 +10,11 @@ const pages = ['index.html', ...fs.readdirSync(L.ROOT).filter(d => fs.existsSync
 for (const p of pages) { const html = fs.readFileSync(path.join(L.ROOT, p), 'utf8'); let err = '';
   try { L.scripts(html).forEach(s => new Function(s)); } catch (e) { err = e.message; }
   ok('syntax ' + p, !err, err);
+  // a variable and a function with the same name: the variable replaces the function (this broke Maths' "3 times 4 is 12")
+  const code = L.scripts(html).join('\n'), fns = new Set([...code.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(x => x[1]));
+  const vars = new Set(); for (const v of code.matchAll(/\bvar\s+([^;]*)/g)) for (const x of v[1].matchAll(/(?:^|,)\s*([A-Za-z_$][\w$]*)\s*(?==|,|$)/g)) vars.add(x[1]);
+  const dup = [...fns].filter(f => vars.has(f));
+  ok('names  ' + p, !dup.length, dup.length ? 'variable and function share a name: ' + dup.join(', ') : '');
   ok('rules  ' + p, /lang="en-GB"/.test(html) && /user-scalable=no/.test(html) && /gesturestart/.test(html) && /selectstart/.test(html), 'en-GB, no zoom, no select');
 }
 

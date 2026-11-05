@@ -16,6 +16,7 @@ Small scripts in `tools/` that replace ad-hoc testing. Run them from the repo ro
 Static checks, no browser. Exit code 1 if anything fails.
 
 - **syntax** of every page's `<script>` (the menu and every `*/index.html`).
+- **names**: no `var` shares a name with a function on the same page (the variable would replace the function).
 - **house rules** on every page: `lang="en-GB"`, `user-scalable=no`, Safari gesture blocking (`gesturestart`) and selection blocking (`selectstart`).
 - **Tricky Words clashes**: no game word is accepted for another game word (through sound-alikes, patterns or fuzzy matching).
 - **Tricky Words frequency** (information only, never fails): the `NEW` batch and, for each word, the share of 4000 simulated rounds it appears in, with no misses remembered. The `NEW` words should be at the top.
@@ -26,6 +27,7 @@ Example output:
 
 ```
 ok   syntax index.html
+ok   names  index.html
 ok   rules  index.html - en-GB, no zoom, no select
 ...
 ok   tricky clashes - 13 words, none
@@ -51,7 +53,7 @@ Opens every page (the menu and every game) in headless Chromium with touch, at 3
 
 - page loads with no JavaScript errors;
 - no sideways scrolling;
-- Maths (at 390 px): taps the right answer and checks it scores.
+- Maths (at 390 px): taps the right answer and checks it scores; then, on a fresh page, taps two wrong answers and checks it moves to the next question with a grey star and no errors.
 
 It doesn't test speech recognition or real sound: those can only be tried on the phone.
 

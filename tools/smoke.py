@@ -24,6 +24,13 @@ with sync_playwright() as p:
             if g == 'maths/index.html' and w == 390:
                 c = pg.evaluate('ans(order[n])'); pg.click(f".opt:text-is('{c}')"); pg.wait_for_timeout(200)
                 report('maths right answer gives a gold star', pg.evaluate("res[0]==='ok'"))
+                # two wrong answers: grey star, then the next question (after the answer is said)
+                pg.reload(); pg.wait_for_timeout(400); errs.clear(); n0 = pg.evaluate('n')
+                for _ in range(2):
+                    c = pg.evaluate('ans(order[n])'); pg.locator('.opt:not([disabled])').filter(has_not_text=str(c)).first.click(); pg.wait_for_timeout(200)
+                pg.wait_for_timeout(4200)
+                moved = pg.evaluate('n') == n0 + 1 and pg.evaluate("res[%d]==='miss'" % n0)
+                report('maths two wrong answers move on', moved and not errs, '; '.join(errs)[:160] or ('n %d -> %d' % (n0, pg.evaluate('n'))))
             if g == 'scribble/index.html' and w == 390:
                 # opening: a start button covers the pad (on iPhone only a tap, not drawing, turns sound on); tapping it must
                 # speak inside the tap even with the silent load-time prompt stuck in the queue, and uncover the pad

@@ -44,4 +44,5 @@ Then read `.claude/skills/kids-mini-games/SKILL.md` for the rules and `docs/tool
 - The shallow clone has no `origin/main` ref: use `git fetch origin main` + `FETCH_HEAD`.
 - Safari won't speak (or play Web Audio) until there's been a real tap (`touchend`/`click` without the finger moving; drawing never counts, nor does `pointerdown`): anything said on load or from a timer before that is silently dropped.
 - Scribble: making shapes bigger thickens their strokes, so the finger coverage disc and ink width must grow with them (smoke checks a centre-line trace still covers 90%).
+- A `var` with the same name as a function replaces it: `var spoken=false` (Safari speech fix) broke Maths' `spoken(x)`, so two wrong answers stopped the game (5 Nov). `check.js` now checks names, and smoke checks two wrong answers move on.
 - `gh api` for Pages settings is blocked by the proxy; `gh run list/view/rerun` work.
