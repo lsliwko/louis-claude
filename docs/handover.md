@@ -17,7 +17,7 @@ Then read `.claude/skills/kids-mini-games/SKILL.md` for the rules and `docs/tool
 - Games on the menu (all blue tiles):
   - **Tricky Words** (`tricky-words/`): say the shown word. Words: I, be, me, we, to, he, she, the, do, of, all, are, was. New-words batch `NEW = the, of, all, are`. Two mistakes allowed.
   - **Maths** (`maths/`): times (2–10, levels 2–5 → 2–7 → 2–10) and adding (levels 0–5 … 0–25), 4 answers in a 2×2 grid, one mistake allowed, levels go up and down with how he does.
-  - **Scribble** (`scribble/`): trace a lowercase or capital letter or a digit with a finger (shapes fill 60–90% of the pad; 90% must be covered, at most 25% of the ink outside a 3% margin); word with bold first letter under the buttons for letters.
+  - **Scribble** (`scribble/`): trace a lowercase or capital letter or a digit with a finger (shapes fill 60–90% of the pad; 90% must be covered, at most 25% of the ink outside a 3% margin); a small emoji picture and a word with bold first letter under the buttons for letters (j is now juice); the pad shrinks so the page fits the screen.
 - Deploy: `.github/workflows/pages.yml` (newer push cancels an older run). Check with `bash tools/deploy-status.sh`.
 - The skill in the user's Claude account was updated from the repo copy on 4 Nov (card sent; the user saves it).
 

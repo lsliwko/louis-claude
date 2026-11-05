@@ -51,8 +51,9 @@ button:active{transform:scale(.97)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @keyframes pulse{50%{transform:scale(1.03)}}
 /* the picture word under the buttons: first letter bold in the accent colour, the rest lighter */
-.word-hint{margin:0;min-height:56px;text-align:center;font-family:var(--display);font-weight:500;font-size:44px;line-height:1.2;color:var(--soft);letter-spacing:.5px}
+.word-hint{margin:0;min-height:56px;display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;font-family:var(--display);font-weight:500;font-size:44px;line-height:1.2;color:var(--soft);letter-spacing:.5px}
 .word-hint b{font-weight:700;color:var(--accent)}
+.word-hint .pic{font-size:44px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;margin-right:2px}
 #padbox{width:100%;display:flex;justify-content:center}
 #pad{display:block;border-radius:18px;background:var(--card);touch-action:none!important;cursor:crosshair}
 .card.pad{padding:14px}
@@ -199,12 +200,16 @@ function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math
 var NAMES={a:'ay',b:'bee',c:'see',d:'dee',e:'ee',f:'eff',g:'jee',h:'aitch',i:'eye',j:'jay',k:'kay',l:'ell',m:'em',n:'en',o:'oh',p:'pee',
   q:'queue',r:'ar',s:'ess',t:'tee',u:'you',v:'vee',w:'double you',x:'ex',y:'why',z:'zed'};
 // A word for each letter, shown under the buttons with its first letter in bold (numbers have no word).
-var WORDS={a:'apple',b:'ball',c:'cat',d:'dog',e:'egg',f:'fish',g:'goat',h:'hat',i:'insect',j:'jam',k:'kite',l:'lion',m:'moon',
+var WORDS={a:'apple',b:'ball',c:'cat',d:'dog',e:'egg',f:'fish',g:'goat',h:'hat',i:'insect',j:'juice',k:'kite',l:'lion',m:'moon',
   n:'nest',o:'octopus',p:'pig',q:'queen',r:'rabbit',s:'sun',t:'tree',u:'umbrella',v:'van',w:'web',x:'x-ray',y:'yo-yo',z:'zebra'};
+// A simple picture for each word: emoji built into the phone, so no image files are needed.
+var PICS={a:'\u{1F34E}',b:'\u26BD',c:'\u{1F431}',d:'\u{1F436}',e:'\u{1F95A}',f:'\u{1F41F}',g:'\u{1F410}',h:'\u{1F3A9}',i:'\u{1F41E}',j:'\u{1F9C3}',
+  k:'\u{1FA81}',l:'\u{1F981}',m:'\u{1F319}',n:'\u{1FAB9}',o:'\u{1F419}',p:'\u{1F437}',q:'\u{1F478}',r:'\u{1F430}',s:'\u2600\uFE0F',t:'\u{1F333}',
+  u:'\u2602\uFE0F',v:'\u{1F690}',w:'\u{1F578}\uFE0F',x:'\u{1FA7B}',y:'\u{1FA80}',z:'\u{1F993}'};
 var DIGITS=['zero','one','two','three','four','five','six','seven','eight','nine'];
 // Letters are said as "queue like queen"; numbers as "draw number seven". Capitals use the same words, with a capital first letter.
 var Q=[];Object.keys(NAMES).forEach(function(c){var said=NAMES[c]+' like '+WORDS[c];
-  Q.push({c:c,k:c,word:WORDS[c],say:said});Q.push({c:c.toUpperCase(),k:c.toUpperCase(),word:WORDS[c].charAt(0).toUpperCase()+WORDS[c].slice(1),say:said})});
+  Q.push({c:c,k:c,word:WORDS[c],pic:PICS[c],say:said});Q.push({c:c.toUpperCase(),k:c.toUpperCase(),word:WORDS[c].charAt(0).toUpperCase()+WORDS[c].slice(1),pic:PICS[c],say:said})});
 DIGITS.forEach(function(w,i){Q.push({c:String(i),k:String(i),say:'Draw number '+w})});
 // Checking the drawing: the shape counts as done when most of it is covered and not too much ink is off the shape.
 var COVER=0.9,OUTSIDE=0.25,TRIES=3;   // two messy tries are allowed; the third moves on
@@ -239,8 +244,9 @@ function markAt(gx,gy){var cx=Math.round(gx),cy=Math.round(gy),base=cx+cy*G,i,k,
   for(i=0;i<stampr.length;i++){k=base+stampr[i];kx=k%G;if(k<0||k>=G*G||Math.abs(kx-cx)>r+1)continue;if(!ink[k]){ink[k]=1;inkN++;if(!dil[k])outN++}}}
 function coverage(){return maskN?covN/maskN:0}
 function outside(){return inkN?outN/inkN:0}
-function sizePad(){var box=$('padbox'),w=Math.max(160,Math.min(box.clientWidth,Math.round(innerHeight*0.56)));S=w;var dpr=window.devicePixelRatio||1;
-  pad.style.width=pad.style.height=w+'px';pad.width=pad.height=Math.round(w*dpr);pctx.setTransform(dpr,0,0,dpr,0,0);redraw()}
+function sizePad(){var box=$('padbox'),w=Math.max(160,Math.min(box.clientWidth,Math.round(innerHeight*0.56)));
+  pad.style.width=pad.style.height=w+'px';var over=document.documentElement.scrollHeight-innerHeight;if(over>0)w=Math.max(200,w-over);
+  S=w;var dpr=window.devicePixelRatio||1;pad.style.width=pad.style.height=w+'px';pad.width=pad.height=Math.round(w*dpr);pctx.setTransform(dpr,0,0,dpr,0,0);redraw()}
 function redraw(fill){pctx.clearRect(0,0,S,S);if(!glyph)return;
   // faint guide lines, the shape to cover, then the child's ink on top
   pctx.strokeStyle=css('--line');pctx.lineWidth=1;pctx.setLineDash([6,6]);[0.27,0.5,0.73].forEach(function(f){pctx.beginPath();pctx.moveTo(8,S*f);pctx.lineTo(S-8,S*f);pctx.stroke()});pctx.setLineDash([]);
@@ -267,7 +273,7 @@ function clearPad(){strokes=[];cur=null;if(glyph)buildMask(glyph);redraw()}
 function show(){var x=order[n];tries=0;busy=false;done=false;
   $('prog').textContent=(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';fb('');
   var w=x.word,h=$('hint');h.textContent='';
-  if(w){var bb=document.createElement('b');bb.textContent=w.charAt(0);h.appendChild(bb);h.appendChild(document.createTextNode(w.slice(1)));h.style.visibility='visible'}
+  if(w){if(x.pic){var pc=document.createElement('span');pc.className='pic';pc.setAttribute('aria-hidden','true');pc.textContent=x.pic;h.appendChild(pc)}var bb=document.createElement('b');bb.textContent=w.charAt(0);var wd=document.createElement('span');wd.appendChild(bb);wd.appendChild(document.createTextNode(w.slice(1)));h.appendChild(wd);h.style.visibility='visible'}
   else h.style.visibility='hidden';
   glyph=x.c;strokes=[];buildMask(glyph);sizePad();setTimeout(function(){say(x.say)},300)}
 function right(){if(busy)return;busy=true;done=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);redraw(css('--good'));
