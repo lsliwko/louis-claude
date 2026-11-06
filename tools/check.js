@@ -50,4 +50,16 @@ for (let i = 0; i < 300; i++) { const r = rd.pickRound(5); if (new Set(r.map(x =
 if (pos.some(v => Math.abs(v / runs - 0.25) > 0.04)) rbad.push('right word positions uneven: ' + pos.join('/'));
 ok('reading words', !rbad.length, rbad.length ? rbad.slice(0, 3).join(' | ') : rd.WORDS.length + ' words; same first letter offered ' + Math.round(first / runs * 100) + '%, a rhyme ' + Math.round(rhyme / runs * 100) + '%; right word in places 1-4: ' + pos.map(v => Math.round(v / runs * 100) + '%').join(' '));
 
+// 5. Reading levels: a round only uses open levels; 8 right first time opens the next level, 5 misses go back one;
+//    choices never use words more than one level above the picture's.
+{ const r = L.reading(), per = r.LEVELS.map((_, i) => r.WORDS.filter(x => x.lv === i).length), bad = [];
+  if (per.some(v => v < 10)) bad.push('a level has under 10 words: ' + per.join('/'));
+  for (let i = 0; i < 300; i++) if (r.pickRound(5).some(x => x.lv > r.LV.lv)) { bad.push('round uses a closed level'); break; }
+  const extra = new Set(r.EXTRA), lvOf = Object.fromEntries(r.WORDS.map(x => [x.w, x.lv]));
+  for (const x of r.WORDS) for (let k = 0; k < 10; k++) for (const z of r.options(x)) if (z !== x.w && !extra.has(z) && lvOf[z] > x.lv + 1) bad.push(x.w + ' offered ' + z);
+  for (let i = 0; i < 8; i++) r.record(1); const up = r.LV.lv;
+  for (let i = 0; i < 5; i++) r.record(0); const down = r.LV.lv;
+  if (up !== 1 || down !== 0) bad.push('level up/down: ' + up + ', ' + down);
+  ok('reading levels', !bad.length, bad.length ? bad.slice(0, 3).join(' | ') : per.length + ' levels of ' + per.join('/') + ' words; up after 8 right, down after 5 misses'); }
+
 process.exit(fail ? 1 : 0);

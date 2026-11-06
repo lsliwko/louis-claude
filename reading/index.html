@@ -199,39 +199,83 @@ function drawStars(){var h='';for(var i=0;i<res.length;i++)h+='<svg class="st'+(
 function mark(ok){res[n]=ok?'ok':'miss';drawStars();var el=$('stars').children[n];if(el)el.classList.add('pop')}
 
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
-// Words: a picture (emoji built into the phone) and its word. Distractors are other simple words that look alike
-// (same first letter, a rhyme), never another name for the same picture.
-var WORDS=[['cat','\u{1F431}'],['dog','\u{1F436}'],['pig','\u{1F437}'],['hen','\u{1F414}'],['fox','\u{1F98A}'],['cow','\u{1F42E}'],['bee','\u{1F41D}'],['ant','\u{1F41C}'],
-  ['bat','\u{1F987}'],['owl','\u{1F989}'],['duck','\u{1F986}'],['fish','\u{1F41F}'],['frog','\u{1F438}'],['sun','\u2600\uFE0F'],['moon','\u{1F319}'],['star','\u2B50'],
-  ['bus','\u{1F68C}'],['car','\u{1F697}'],['van','\u{1F690}'],['ship','\u{1F6A2}'],['bed','\u{1F6CF}\uFE0F'],['hat','\u{1F3A9}'],['sock','\u{1F9E6}'],['egg','\u{1F95A}'],
-  ['cake','\u{1F382}'],['bell','\u{1F514}'],['kite','\u{1FA81}'],['box','\u{1F4E6}'],['key','\u{1F511}'],['pen','\u{1F58A}\uFE0F'],['map','\u{1F5FA}\uFE0F'],['web','\u{1F578}\uFE0F'],
-  ['nut','\u{1F95C}'],['leg','\u{1F9B5}'],['ear','\u{1F442}'],['tree','\u{1F333}'],['ball','\u26BD'],['drum','\u{1F941}'],['book','\u{1F4D6}'],['milk','\u{1F95B}'],
-  ['corn','\u{1F33D}'],['ring','\u{1F48D}'],
-  ['bear','\u{1F43B}'],['goat','\u{1F410}'],['mouse','\u{1F42D}'],['horse','\u{1F434}'],['sheep','\u{1F411}'],['wolf','\u{1F43A}'],['crab','\u{1F980}'],['snail','\u{1F40C}'],
-  ['shark','\u{1F988}'],['whale','\u{1F433}'],['seal','\u{1F9AD}'],['snake','\u{1F40D}'],['lion','\u{1F981}'],['worm','\u{1FAB1}'],['shell','\u{1F41A}'],['nest','\u{1FAB9}'],
-  ['apple','\u{1F34E}'],['pear','\u{1F350}'],['lemon','\u{1F34B}'],['grapes','\u{1F347}'],['carrot','\u{1F955}'],['bread','\u{1F35E}'],['cheese','\u{1F9C0}'],['pizza','\u{1F355}'],
-  ['cup','\u2615'],['shoe','\u{1F45F}'],['boot','\u{1F462}'],['coat','\u{1F9E5}'],['dress','\u{1F457}'],['crown','\u{1F451}'],['cap','\u{1F9E2}'],['bag','\u{1F392}'],
-  ['house','\u{1F3E0}'],['tent','\u26FA'],['door','\u{1F6AA}'],['bath','\u{1F6C1}'],['clock','\u23F0'],['gift','\u{1F381}'],['lock','\u{1F512}'],['bin','\u{1F5D1}\uFE0F'],
-  ['train','\u{1F682}'],['plane','\u2708\uFE0F'],['boat','\u26F5'],['bike','\u{1F6B2}'],['rocket','\u{1F680}'],
-  ['hand','\u270B'],['foot','\u{1F9B6}'],['nose','\u{1F443}'],['tooth','\u{1F9B7}'],['bone','\u{1F9B4}'],
-  ['log','\u{1FAB5}'],['rock','\u{1FAA8}'],['leaf','\u{1F341}'],['rose','\u{1F339}'],['axe','\u{1FA93}']].map(function(p){return {w:p[0],pic:p[1],k:p[0]}});
-var EXTRA=('cot cap can cut hut hot hit pin pot pet ten tin man mat sat log dig big bin bun run fun hug jug mud rug tub fan pan jam ham wet net jet red '
-  +'dip zip top mop hop fog dot lid kid six fix tap nap lap sad dad pad wig fig job dish wish shop chop rock lock luck sack back well tell king sing '
-  +'song look hook took tall wall fall call lake make bake take bite soon free three stop chip from fist bang bark born horn silk sick kick dock fox').split(' ');
+// Words: a picture (emoji built into the phone) and its word, in 6 levels by reading difficulty. He starts on level 1;
+// later levels unlock as he gets words right (like Maths). Distractors are other words that look alike
+// (same first letter, a rhyme), never another name for the same picture (SAME).
+var LEVELS=[
+  // 1: three-letter words
+  'cat🐱 dog🐶 pig🐷 hen🐔 fox🦊 bat🦇 rat🐀 ram🐏 ant🐜 bus🚌 sun☀️ bed🛏️ '+
+  'hat🎩 box📦 pen🖊️ map🗺️ web🕸️ nut🥜 leg🦵 van🚐 cup☕ bag🎒 cap🧢 bin🗑️ '+
+  'log🪵 egg🥚 axe🪓 pin📌 gem💎 fan🪭 net🥅 hut🛖',
+  // 2: blends
+  'frog🐸 crab🦀 drum🥁 milk🥛 hand✋ nest🪹 tent⛺ lips👄 bell🔔 plug🔌 clip📎 flag🚩 '+
+  'gift🎁 wand🪄 plant🪴 bulb💡 skunk🦨 tram🚋',
+  // 3: sh ch th ck ng oo ee ar or ow
+  'fish🐟 ship🚢 shell🐚 sheep🐑 shark🦈 shirt👕 shorts🩳 chips🍟 chick🐤 thumb👍 bath🛁 sloth🦥 '+
+  'duck🦆 sock🧦 lock🔒 clock⏰ rock🪨 brick🧱 ring💍 wing🪽 moon🌙 book📖 foot🦶 tooth🦷 '+
+  'broom🧹 spoon🥄 boot👢 hook🪝 wool🧶 bee🐝 tree🌳 star⭐ car🚗 arm💪 scarf🧣 corn🌽 '+
+  'torch🔦 cow🐮 owl🦉 clown🤡 crown👑 squid🦑 ear👂',
+  // 4: long vowels
+  'cake🎂 kite🪁 bone🦴 nose👃 rose🌹 snake🐍 whale🐳 fire🔥 boat⛵ coat🧥 goat🐐 snail🐌 '+
+  'train🚂 cheese🧀 horse🐴 mouse🐭 house🏠 cloud☁️ tie👔 pie🥧 ice🧊 dice🎲 flute🪈 wave🌊 '+
+  'plane✈️ slide🛝 bike🚲 shoe👟 juice🧃 bread🍞 pear🍐 bear🐻 deer🦌 leaf🍁 seal🦭 soap🧼 '+
+  'goose🪿 saw🪚 moose🫎 swan🦢 chair🪑 wheel🛞 sweet🍬 beach🏖️ tea🍵 key🔑 bow🎀 heart❤️ '+
+  'eye👁️',
+  // 5: two syllables
+  'apple🍎 lemon🍋 melon🍈 carrot🥕 rocket🚀 rabbit🐰 robot🤖 pencil✏️ basket🧺 teddy🧸 panda🐼 tiger🐯 '+
+  'zebra🦓 camel🐪 parrot🦜 hippo🦛 lolly🍭 monkey🐵 donkey🫏 otter🦦 badger🦡 beaver🦫 hamster🐹 lizard🦎 '+
+  'spider🕷️ tulip🌷 cactus🌵 magnet🧲 ladder🪜 hammer🔨 candle🕯️ bucket🪣 mirror🪞 window🪟 glasses👓 guitar🎸 '+
+  'piano🎹 trumpet🎺 violin🎻 balloon🎈 castle🏰 garlic🧄 onion🧅 pepper🫑 cookie🍪 waffle🧇 bagel🥯 pretzel🥨 '+
+  'honey🍯 butter🧈 bacon🥓 mango🥭 olive🫒 kiwi🥝 orange🍊 popcorn🍿 cupcake🧁 pancakes🥞 chilli🌶️ sofa🛋️ '+
+  'laptop💻 crayon🖍️ ruler📏 spanner🔧 sponge🧽 plaster🩹 puzzle🧩 wizard🧙 fairy🧚 baby👶 snowman⛄ rainbow🌈 '+
+  'planet🪐 comet☄️ tractor🚜 scooter🛴 taxi🚕 lorry🚚 canoe🛶 anchor⚓ feather🪶 penguin🐧 eagle🦅 dragon🐉 '+
+  'dolphin🐬 lobster🦞 mushroom🍄 ghost👻 lion🦁 jeans👖 gloves🧤 dress👗 toilet🚽 shower🚿 sandwich🥪 turkey🦃',
+  // 6: longer words
+  'elephant🐘 giraffe🦒 kangaroo🦘 crocodile🐊 dinosaur🦕 butterfly🦋 ladybird🐞 hedgehog🦔 squirrel🐿️ flamingo🦩 peacock🦚 jellyfish🪼 '+
+  'gorilla🦍 koala🐨 llama🦙 rhino🦏 unicorn🦄 octopus🐙 umbrella☂️ helicopter🚁 ambulance🚑 skateboard🛹 parachute🪂 toothbrush🪥 '+
+  'screwdriver🪛 battery🔋 telescope🔭 microscope🔬 envelope✉️ calendar📅 trophy🏆 medal🏅 scissors✂️ camera📷 volcano🌋 mountain⛰️ '+
+  'island🏝️ snowflake❄️ sunflower🌻 tomato🍅 potato🥔 banana🍌 strawberry🍓 watermelon🍉 pineapple🍍 coconut🥥 avocado🥑 broccoli🥦 '+
+  'cucumber🥒 doughnut🍩 chocolate🍫 alien👽 fountain⛲ mermaid🧜‍♀️'];
+var WORDS=[];LEVELS.forEach(function(t,lv){t.split(' ').forEach(function(s){var m=/^([a-z]+)(.+)$/.exec(s);if(m)WORDS.push({w:m[1],pic:m[2],k:m[1],lv:lv})})});
+var EXTRA=('cot cut hot hit pot pet ten tin man mat sat dig big run fun jug mud rug pan jam dip zip top mop dot lid six fix tap nap lap sad dad pad wig fig job '
+  +'dish wish shop luck back well tell sing took wall fall call lake make take soon free three stop from born silk dock').split(' ');
 // Words that could name the same picture: never offered together (e.g. no 'cap' for the top hat).
-var SAME=[['hat','cap'],['ship','boat'],['bed','cot'],['house','hut','tent'],['cup','mug','pot'],['mouse','rat'],['boot','shoe'],['car','van'],['plane','jet'],
-  ['foot','leg'],['rock','stone'],['log','stick'],['bag','sack'],['bath','tub'],['goat','kid'],['dog','pup'],['bin','can']];
+var SAME=[['hat','cap'],['ship','boat','canoe'],['bed','cot'],['house','hut','tent'],['cup','mug','pot','tea'],['mouse','rat','hamster'],['boot','shoe'],
+  ['car','van','taxi'],['plane','jet'],['foot','leg'],['rock','stone','brick'],['log','stick'],['bag','sack'],['bath','tub'],['goat','kid'],['baby','kid'],['dog','pup'],
+  ['bin','can'],['hen','chick'],['fish','shark'],['sun','star'],['moon','planet'],['cloud','fog'],['bread','bun','bagel'],['cake','cupcake','bun'],['sweet','lolly'],
+  ['cookie','biscuit'],['bear','teddy','panda','koala'],['moose','deer'],['monkey','gorilla'],['horse','pony','donkey'],['dinosaur','dragon'],['crocodile','lizard'],
+  ['clock','watch'],['ring','gem'],['ice','cube'],['dice','cube'],['shirt','top'],['coat','jacket'],['fire','hot'],['bulb','torch'],['melon','watermelon'],
+  ['pepper','chilli'],['octopus','squid'],['crab','lobster'],['tram','train'],['ambulance','van'],['sofa','chair'],['island','beach'],['mountain','volcano'],['tooth','teeth'],
+  ['lips','mouth'],['hand','fist'],['bike','scooter'],['lorry','van'],['ice','snowflake'],
+  ['tie','shirt'],['goose','duck','swan'],['otter','beaver'],['badger','skunk'],['rhino','hippo'],['jellyfish','octopus','squid'],['sandwich','bread'],
+  ['pancakes','waffle'],['bagel','doughnut'],['comet','star'],['helicopter','plane'],['skateboard','scooter']];
 function same(a,b){return SAME.some(function(g){return g.indexOf(a)>=0&&g.indexOf(b)>=0})}
 var CHOICES=4,TRIES=2;
 var MKEY='rd-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(k){MISS[k]=Math.min((MISS[k]||0)+1,5);saveMiss()}
 function noteHit(k){if(MISS[k]){MISS[k]--;if(!MISS[k])delete MISS[k];saveMiss()}}
-// Pick the round without repeats; words missed on the first try come up more often (weight 1 + 2 x misses).
-function pickRound(k){var pool=WORDS.slice(),out=[];while(out.length<k&&pool.length){var tot=0,ws=pool.map(function(v){var x=1+2*(MISS[v.k]||0);tot+=x;return x}),r=Math.random()*tot,i=0;
+// Level: each word scores 1 (right first time), 0.5 (after a mistake) or 0 (missed). 7+ over the last 8 opens the next level;
+// 1.5 or less over the last 5 goes back one. The history resets on each move; a new level starts from the next round.
+var UP_WINDOW=8,UP_SCORE=7,DOWN_WINDOW=5,DOWN_SCORE=1.5;
+var LKEY='rd-level',LV={lv:0,h:[]};
+try{var sv=JSON.parse(localStorage.getItem(LKEY)||'null');if(sv&&typeof sv.lv==='number')LV={lv:Math.max(0,Math.min(sv.lv,LEVELS.length-1)),h:Array.isArray(sv.h)?sv.h:[]}}catch(e){}
+function saveLv(){try{localStorage.setItem(LKEY,JSON.stringify(LV))}catch(e){}}
+var moved=0;   // +1 / -1 if the level changed during this round
+function record(score){LV.h.push(score);if(LV.h.length>UP_WINDOW)LV.h.shift();
+  var sum=function(k){return LV.h.slice(-k).reduce(function(a,b){return a+b},0)};
+  if(LV.h.length>=UP_WINDOW&&sum(UP_WINDOW)>=UP_SCORE&&LV.lv<LEVELS.length-1){LV.lv++;LV.h=[];moved=1}
+  else if(LV.h.length>=DOWN_WINDOW&&sum(DOWN_WINDOW)<=DOWN_SCORE&&LV.lv>0){LV.lv--;LV.h=[];moved=-1}
+  saveLv()}
+// Pick the round from the open levels without repeats: the newest level's words 3 times as often, and words missed
+// on the first try more often (weight + 2 x misses).
+function pickRound(k){var pool=WORDS.filter(function(v){return v.lv<=LV.lv}),out=[];
+  while(out.length<k&&pool.length){var tot=0,ws=pool.map(function(v){var x=(v.lv===LV.lv&&LV.lv>0?3:1)+2*(MISS[v.k]||0);tot+=x;return x}),r=Math.random()*tot,i=0;
   while(i<pool.length-1&&r>=ws[i]){r-=ws[i];i++}out.push(pool.splice(i,1)[0])}return out}
-// Four words: the right one, one with the same first letter, one that rhymes (same last two letters), and one more of a similar length.
-function options(x){var w=x.w,all={},seen={},out=[];WORDS.forEach(function(v){all[v.w]=1});EXTRA.forEach(function(v){all[v]=1});delete all[w];seen[w]=1;Object.keys(all).forEach(function(c){if(same(w,c))delete all[c]});
+// Four words: the right one, one with the same first letter, one that rhymes (same last two letters), and one more of a similar
+// length, from words up to one level above this one and EXTRA. The right word's place is shuffled.
+function options(x){var w=x.w,all={},seen={},out=[];WORDS.forEach(function(v){if(v.lv<=x.lv+1)all[v.w]=1});EXTRA.forEach(function(v){all[v]=1});
+  delete all[w];seen[w]=1;Object.keys(all).forEach(function(c){if(same(w,c))delete all[c]});
   var cand=shuf(Object.keys(all)),add=function(f){for(var i=0;i<cand.length&&out.length<CHOICES-1;i++){var c=cand[i];if(!seen[c]&&f(c)){seen[c]=1;out.push(c);return}}};
   add(function(c){return c[0]===w[0]});add(function(c){return c.slice(-2)===w.slice(-2)});
   add(function(c){return Math.abs(c.length-w.length)<=1});while(out.length<CHOICES-1)add(function(){return true});
@@ -262,22 +306,22 @@ function answer(b,v){if(busy||b.disabled)return;ac();var x=order[n];
 // so wait for speech to finish (2.5s at most), then play.
 function afterSpeech(fn){var t0=Date.now();(function chk(){var sp=false;try{sp=speechSynthesis.speaking||speechSynthesis.pending}catch(e){}
   if(sp&&Date.now()-t0<2500){setTimeout(chk,100);return}setTimeout(function(){whenAudio(fn)},sp?0:150)})()}
-function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);reveal(x);
+function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);record(tries===0?1:0.5);reveal(x);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   afterSpeech(function(){cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})})}
 // One mistake is allowed: the 2nd wrong tap shows the right word in green, says it, gives a grey star and moves on.
 function wrong(){if(busy)return;var x=order[n];tries++;if(tries===1)noteMiss(x.k);
-  if(tries>=TRIES){busy=true;mark(false);reveal(x);fb(x.w,'info');
+  if(tries>=TRIES){busy=true;mark(false);record(0);reveal(x);fb(x.w,'info');
     afterSpeech(function(){buzz();setTimeout(function(){say('It says '+x.w)},850);setTimeout(function(){n++;n<order.length?show():end()},3800)});return}
   fb('Please try again','no');afterSpeech(function(){buzz();setTimeout(function(){say('Please try again')},850)})}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
-  var ec=$('endcard');ec.innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' words!</h2><p class="ex">'+(st===L?'FIVE stars! You are winning!':'Good try. Play again for more stars.')+'</p><button id="again" type="button" class="again" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';
+  var ec=$('endcard');ec.innerHTML='<div class="end-stars">'+s+'</div><h2>'+score+' of '+order.length+' words!</h2><p class="ex">'+(st===L?'FIVE stars! You are winning!':'Good try. Play again for more stars.')+'</p><p class="lvl">Level '+(LV.lv+1)+' of '+LEVELS.length+' · '+WORDS.filter(function(v){return v.lv<=LV.lv}).length+' words</p><button id="again" type="button" class="again" aria-label="Play again"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 1 0 18 17"/><path d="M20 5v6h-6"/></svg></button>';
   $('card').hidden=true;$('ctrl').hidden=true;ec.hidden=false;
   $('again').onclick=function(){if(!lock('again'))return;restart()};
-  say(st===L?'Five stars! You are winning!':'All done! Well done!')}
-function restart(){try{speechSynthesis.cancel()}catch(e){}
+  say((st===L?'Five stars! You are winning!':'All done! Well done!')+(moved>0?' New words next time!':''))}
+function restart(){try{speechSynthesis.cancel()}catch(e){}moved=0;
   order=pickRound(ROUND);n=0;score=0;res=[];tries=0;busy=false;drawStars();
   $('endcard').hidden=true;$('endcard').innerHTML='';$('card').hidden=false;$('ctrl').hidden=false;show()}
 window.addEventListener('pagehide',function(){try{speechSynthesis.cancel()}catch(e){}try{if(AC)AC.close()}catch(e){}});
