@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Voice</title>
+<title>Options</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@400;600;700&display=swap">
 <style>
-/* For grown-ups: hear the British voices on this phone and choose the one every game uses (saved on this phone) */
+/* Options, for grown-ups only (asks for the year they were born first): the voice every game uses (saved on this phone) */
 :root{
   --ground:#EEF4FB; --card:#FFFFFF; --ink:#1C2647; --soft:#5A6485; --line:#D5DEEC; --accent:#2F5BEA; --accent-bg:#E3EAFE; --good:#1F7A4D; --good-bg:#DFF3E8;
   --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif; --body:"Nunito",system-ui,-apple-system,sans-serif;
@@ -37,21 +37,45 @@ button{font:inherit;cursor:pointer;border-radius:999px;border:2px solid var(--ac
 .row.on .use{border-color:var(--good);background:var(--good);color:#fff}
 .auto{align-self:flex-start;padding:0 18px}
 .help{font-size:15px}
+[hidden]{display:none!important}
+#opts{display:contents}
+h2{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.2;margin:6px 0 0}
+.gate{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:8px;text-align:center}
+.gate p{color:var(--ink)}
+.dots{display:flex;gap:12px}
+.dots span{width:52px;height:60px;border-radius:14px;border:2px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:30px}
+.dots.bad{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.keys{display:grid;grid-template-columns:repeat(3,76px);gap:12px}
+.keys button{height:64px;border-radius:18px;font-family:var(--display);font-size:28px}
+.keys .blank{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.dots.bad{animation:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><a class="home" href="../" aria-label="Back to all games"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></a><h1>Voice</h1></div>
+  <div class="top"><a class="home" href="../" aria-label="Back to all games"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></a><h1>Options</h1></div>
+  <section class="gate" id="gate" aria-label="Grown-ups only">
+    <p>For grown-ups. Type the year you were born.</p>
+    <div class="dots" id="dots" aria-live="polite"><span></span><span></span><span></span><span></span></div>
+    <div class="keys" id="keys"></div>
+  </section>
+  <div id="opts" hidden>
+  <h2>Voice</h2>
   <p>The British voices on this phone. Tap ▶ to hear one and <b>Use</b> to choose it for every game. The choice is saved on this phone.</p>
   <ul class="list" id="list"></ul>
-  <button class="auto" id="auto" type="button">Let the games choose</button>
+  <button class="auto" id="auto" type="button" hidden>Back to the default voice</button>
   <p class="help" id="none" hidden>No British voices found yet. Wait a moment, or add one in the phone's settings (below).</p>
   <p class="help">On iPhone, web pages only see the built-in voices: voices you download (like Jamie Premium or Arthur Enhanced) are hidden from all websites, in Safari and Chrome alike. To try one anyway: in Settings › Accessibility › Spoken Content (Read &amp; Speak on newer iPhones) › Voices › English, choose it for English (UK), then come back and tap ▶ on <b>Phone's British voice</b>. If it sounds like your choice, tap <b>Use</b> there.</p>
+  </div>
 </div>
 <script>
 function $(id){return document.getElementById(id)}
 var SAMPLE='Bee like ball. Well done! Three times four is twelve.',KEY='voice';
-function saved(){try{return localStorage.getItem(KEY)||''}catch(e){return''}}
+var IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+function stored(){try{return localStorage.getItem(KEY)||''}catch(e){return''}}
+// What the games use: the saved choice, else on iPhone/iPad the phone's own British voice (the default)
+function saved(){return stored()||(IOS?'phone':'')}
 function save(n){try{n?localStorage.setItem(KEY,n):localStorage.removeItem(KEY)}catch(e){}}
 function kind(v){var n=(v.name||'')+' '+(v.voiceURI||'');return /premium/i.test(n)?'Premium':/enhanced/i.test(n)?'Enhanced':/neural|natural/i.test(n)?'Natural':/super-compact/i.test(n)?'Basic (smallest, most robotic)':'Standard'}
 function voices(){try{return (speechSynthesis.getVoices()||[]).filter(function(v){return /^en[-_]GB/i.test(v.lang)})}catch(e){return[]}}
@@ -66,14 +90,26 @@ function draw(){var all=voices(),cur=saved(),L=$('list');L.innerHTML='';
   // iPhone sometimes lists the same voice twice: show each once
   var seen={},vs=all.filter(function(v){var k=v.name+'|'+(v.voiceURI||'');if(seen[k])return false;seen[k]=1;return true});
   $('none').hidden=vs.length>0;
-  row(L,"Phone's British voice","No voice named: the phone picks its own British English voice",cur==='phone',function(){hear(null)},function(){save('phone');draw();hear(null)});
+  row(L,"Phone's British voice","No voice named: the phone picks its own British English voice"+(IOS?" (default on this phone)":""),cur==='phone',function(){hear(null)},function(){save('phone');draw();hear(null)});
   var q=function(v){var k=kind(v);return k==='Premium'?0:k==='Enhanced'||k==='Natural'?1:k==='Standard'?2:3};
   vs.sort(function(a,b){return q(a)-q(b)||a.name.localeCompare(b.name)});
   vs.forEach(function(v){var id=v.voiceURI&&v.voiceURI!==v.name?' · '+v.voiceURI:'';
     row(L,v.name,kind(v)+(v.localService===false?' · needs internet':'')+id,(v.voiceURI||v.name)===cur,function(){hear(v)},function(){save(v.voiceURI||v.name);draw();hear(v)})});
-  $('auto').textContent=cur?'Let the games choose':'The games are choosing';}
+  $('auto').hidden=!stored();}
 $('auto').onclick=function(){save('');draw()};
-draw();try{speechSynthesis.onvoiceschanged=draw}catch(e){}setTimeout(draw,600);setTimeout(draw,2000);
+// Grown-ups only: the year they were born (18 to 110 years ago) opens the options. Asked every time the page opens.
+var typed='';
+function dots(){var d=$('dots').children;for(var i=0;i<4;i++)d[i].textContent=typed.charAt(i)}
+function key(k){if(k==='del'){typed=typed.slice(0,-1);dots();return}if(typed.length>=4)return;typed+=k;dots();
+  if(typed.length===4){var age=new Date().getFullYear()-parseInt(typed,10);
+    if(age>=18&&age<=110){$('gate').hidden=true;$('opts').hidden=false;draw()}
+    else setTimeout(function(){var d=$('dots');d.classList.remove('bad');void d.offsetWidth;d.classList.add('bad');typed='';dots()},250)}}
+['1','2','3','4','5','6','7','8','9','','0','del'].forEach(function(k){var b=document.createElement('button');b.type='button';
+  if(!k){b.className='blank';b.tabIndex=-1;b.setAttribute('aria-hidden','true')}
+  else if(k==='del'){b.setAttribute('aria-label','Delete');b.innerHTML='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12z"/><path d="m18 9-6 6M12 9l6 6"/></svg>'}
+  else b.textContent=k;
+  b.onclick=function(){key(k)};$('keys').appendChild(b)});
+try{speechSynthesis.onvoiceschanged=function(){if(!$('opts').hidden)draw()}}catch(e){}
 // No pinch or double-tap zoom (Safari ignores user-scalable=no, so block its gesture events too).
 ['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
 document.addEventListener('dblclick',function(e){e.preventDefault()},{passive:false});

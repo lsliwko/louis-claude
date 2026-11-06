@@ -171,8 +171,10 @@ function tick(){fctx.clearRect(0,0,innerWidth,innerHeight);fctx.lineCap='round';
 
 var VOICE=null,UTT=null;
 function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(function(v){return /^en[-_]GB/i.test(v.lang)});
-  // A voice chosen on the Voice page (voices/) wins, if it's still on this phone.
-  var want='';try{want=localStorage.getItem('voice')||''}catch(e){}if(want==='phone'){VOICE=null;return}var mine=vs.filter(function(v){return v.voiceURI===want})[0]||vs.filter(function(v){return v.name===want})[0];if(mine){VOICE=mine;return}
+  // A voice chosen on the Options page (options/) wins, if it's still on this phone. With no choice, iPhone/iPad name no voice
+  // (only lang en-GB): the phone then uses its own British voice, which sounds best there. Elsewhere pick a British voice by name.
+  var want='';try{want=localStorage.getItem('voice')||''}catch(e){}var ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+  if(want==='phone'||(!want&&ios)){VOICE=null;return}var mine=vs.filter(function(v){return v.voiceURI===want})[0]||vs.filter(function(v){return v.name===want})[0];if(mine){VOICE=mine;return}
   // Enhanced/premium British voice first (the user prefers how they sound); the standard one only if none is installed.
   var rank=function(v){var nm=(v.name||'')+' '+(v.voiceURI||'');return (/premium|enhanced|neural|natural/i.test(nm)?0:2)+(/super-compact/i.test(nm)?1:0)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
   vs.sort(function(a,b){return rank(a)-rank(b)});VOICE=vs[0]||null}catch(e){}}

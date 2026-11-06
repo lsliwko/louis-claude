@@ -21,11 +21,19 @@ with sync_playwright() as p:
             side = pg.evaluate('document.documentElement.scrollWidth>innerWidth')
             report(f'{g} @{w}px', not errs and not side, '; '.join(errs)[:160] or ('sideways scroll' if side else ''))
             if shots and w == 390: SHOTS.mkdir(exist_ok=True); pg.screenshot(path=str(SHOTS / (g.replace('/', '_') + '.png')))
-            if g == 'voices/index.html' and w == 390:
+            if g == 'options/index.html' and w == 390:
                 # choose a voice on the Voice page, then a game must use it (fake British voices, as on an iPhone)
                 fake = '''(()=>{const vs=[['Daniel','com.apple.voice.super-compact.en-GB.Daniel'],['Daniel','com.apple.voice.compact.en-GB.Daniel'],['Daniel','com.apple.voice.compact.en-GB.Daniel'],['Martha','com.apple.voice.compact.en-GB.Martha']].map(([n,u])=>({name:n,voiceURI:u,lang:'en-GB',localService:true}));
                   vs.push({name:'Samantha',lang:'en-US',localService:true});speechSynthesis.getVoices=()=>vs;})()'''
-                pg.evaluate(fake); pg.evaluate('draw()')
+                # grown-ups gate: a child's year is refused, an adult's year opens the options
+                kid = str(__import__('datetime').date.today().year - 5)
+                for d in kid: pg.locator('#keys button', has_text=d).first.click()
+                pg.wait_for_timeout(400); shut = pg.evaluate("$('opts').hidden && !$('gate').hidden && !$('list').offsetParent")
+                pg.evaluate(fake)
+                for d in '1985': pg.locator('#keys button', has_text=d).first.click()
+                opened = pg.evaluate("$('opts').hidden===false && $('gate').hidden && !!$('list').offsetParent")
+                report('options gate refuses a child, opens for a grown-up', shut and opened, 'child year %s shut %s, 1985 opens %s' % (kid, shut, opened))
+                pg.evaluate('draw()')
                 rows = pg.locator('.row').count(); pg.locator('.row', has_text='super-compact').locator('.use').click()
                 chosen = pg.evaluate("localStorage.getItem('voice')")
                 on = pg.locator('.row.on').count()
@@ -33,8 +41,10 @@ with sync_playwright() as p:
                 pg.goto((ROOT / 'scribble/index.html').as_uri()); pg.wait_for_timeout(300); pg.evaluate('pickVoice()')
                 used = pg.evaluate('VOICE&&VOICE.voiceURI'); pg.evaluate("localStorage.setItem('voice','phone');pickVoice()"); phone = pg.evaluate('VOICE===null')
                 pg.evaluate("localStorage.removeItem('voice');pickVoice()"); auto = pg.evaluate('VOICE&&VOICE.voiceURI')
-                report('voice page choice is used by the games', rows == 4 and on == 1 and chosen.startswith('com.apple.voice.super-compact') and used == chosen and phone and auto == 'com.apple.voice.compact.en-GB.Daniel',
-                       'rows %d (phone + 3: two Daniels, duplicate once), %d marked chosen, chosen %s, game uses %s, phone voice %s, without a choice %s' % (rows, on, chosen, used, phone, auto))
+                ios_default = pg.evaluate('''(()=>{Object.defineProperty(navigator,'userAgent',{configurable:true,get:()=>'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'});
+                  localStorage.removeItem('voice');VOICE=undefined;pickVoice();return VOICE===null})()''')
+                report('voice page choice is used by the games', rows == 4 and on == 1 and chosen.startswith('com.apple.voice.super-compact') and used == chosen and phone and ios_default and auto == 'com.apple.voice.compact.en-GB.Daniel',
+                       'rows %d (phone + 3: two Daniels, duplicate once), %d marked chosen, chosen %s, game uses %s, phone voice %s, iPhone default is the phone voice %s, without a choice elsewhere %s' % (rows, on, chosen, used, phone, ios_default, auto))
             if g == 'maths/index.html' and w == 390:
                 c = pg.evaluate('ans(order[n])'); pg.click(f".opt:text-is('{c}')"); pg.wait_for_timeout(200)
                 report('maths right answer gives a gold star', pg.evaluate("res[0]==='ok'"))
