@@ -17,6 +17,7 @@ Static checks, no browser. Exit code 1 if anything fails.
 
 - **syntax** of every page's `<script>` (the menu and every `*/index.html`).
 - **voice**: every game uses the voice chosen on the Voice page, else ranks enhanced/premium en-GB voices first.
+- **reading words**: every Reading word has a picture and is unique; every question has 4 different lowercase words with exactly one right; rounds have no repeats; reports how often a same-first-letter and a rhyming word are offered.
 - **names**: no `var` shares a name with a function on the same page (the variable would replace the function).
 - **house rules** on every page: `lang="en-GB"`, `user-scalable=no`, Safari gesture blocking (`gesturestart`) and selection blocking (`selectstart`).
 - **Tricky Words clashes**: no game word is accepted for another game word (through sound-alikes, patterns or fuzzy matching).
@@ -55,6 +56,7 @@ Opens every page (the menu and every game) in headless Chromium with touch, at 3
 - page loads with no JavaScript errors;
 - no sideways scrolling;
 - Options page (at 390 px): a child's birth year is refused and an adult's opens it; then, with pretend voices, lists the phone's own voice plus British ones (a duplicate once), chooses one and checks Scribble then uses it, that "phone" leaves the voice unset, that with no choice an iPhone leaves the voice unset, and that elsewhere it goes back to the best British one.
+- Reading (at 390 px): the ▶ start tap says the word inside the tap; the right word gives a gold star and the next word is said when it appears; two wrong words move on with a grey star.
 - Maths (at 390 px): taps the right answer and checks it scores; then, on a fresh page, taps two wrong answers and checks it moves to the next question with a grey star and no errors.
 
 It doesn't test speech recognition or real sound: those can only be tried on the phone.

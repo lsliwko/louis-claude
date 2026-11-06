@@ -23,4 +23,9 @@ function maths() {
   return new Function('shuf', 'localStorage', between(js, '// Questions:', 'var ROUND=5') +
     ';return {QX,QA,ans,options,pickRound,range,record,LV,LEVELS,CHOICES}')(shuf, store());
 }
-module.exports = { ROOT, page, scripts, main, tricky, maths, shuf };
+function reading() {
+  const js = main('reading');
+  return new Function('shuf', 'localStorage', between(js, '// Words:', 'var ROUND=5') +
+    ';return {WORDS,EXTRA,options,pickRound,CHOICES}')(shuf, store());
+}
+module.exports = { ROOT, page, scripts, main, tricky, maths, reading, shuf };

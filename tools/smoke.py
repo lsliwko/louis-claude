@@ -45,6 +45,24 @@ with sync_playwright() as p:
                   localStorage.removeItem('voice');VOICE=undefined;pickVoice();return VOICE===null})()''')
                 report('voice page choice is used by the games', rows == 4 and on == 1 and chosen.startswith('com.apple.voice.super-compact') and used == chosen and phone and ios_default and auto == 'com.apple.voice.compact.en-GB.Daniel',
                        'rows %d (phone + 3: two Daniels, duplicate once), %d marked chosen, chosen %s, game uses %s, phone voice %s, iPhone default is the phone voice %s, without a choice elsewhere %s' % (rows, on, chosen, used, phone, ios_default, auto))
+            if g == 'reading/index.html' and w == 390:
+                # start button covers the card; its tap says the word inside the tap and uncovers it
+                shown = pg.evaluate("!$('go').hidden")
+                pg.evaluate('''(()=>{window.__said=[];const ss=speechSynthesis;window.__sp=ss.speak.bind(ss);ss.speak=function(u){window.__said.push(u.text)};
+                  $('go').addEventListener('click',()=>{window.__inTap=window.__said.slice()},{once:true})})()''')
+                pg.click('#go'); said = pg.evaluate('window.__inTap||[]'); word = pg.evaluate('order[n].w')
+                report('reading start button says the word', shown and pg.evaluate("$('go').hidden") and word in said, 'said in the tap: %s (word %s)' % (said, word))
+                pg.click(f".opt:text-is('{word}')"); pg.wait_for_timeout(200)
+                report('reading right word gives a gold star', pg.evaluate("res[0]==='ok'"))
+                pg.wait_for_timeout(5000); said2 = pg.evaluate('window.__said'); w2 = pg.evaluate('order[n].w')
+                report('reading next word is said when it appears', pg.evaluate('n') == 1 and w2 in said2, 'n %d, said %s' % (pg.evaluate('n'), said2[-2:]))
+                # two wrong words: grey star, then the next word
+                pg.reload(); pg.wait_for_timeout(400); errs.clear(); pg.click('#go'); n0 = pg.evaluate('n')
+                for _ in range(2):
+                    c = pg.evaluate('order[n].w'); pg.locator('.opt:not([disabled])').filter(has_not_text=c).first.click(); pg.wait_for_timeout(200)
+                pg.wait_for_timeout(4200)
+                moved = pg.evaluate('n') == n0 + 1 and pg.evaluate("res[%d]==='miss'" % n0)
+                report('reading two wrong words move on', moved and not errs, '; '.join(errs)[:160] or ('n %d -> %d' % (n0, pg.evaluate('n'))))
             if g == 'maths/index.html' and w == 390:
                 c = pg.evaluate('ans(order[n])'); pg.click(f".opt:text-is('{c}')"); pg.wait_for_timeout(200)
                 report('maths right answer gives a gold star', pg.evaluate("res[0]==='ok'"))

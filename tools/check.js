@@ -16,7 +16,7 @@ for (const p of pages) { const html = fs.readFileSync(path.join(L.ROOT, p), 'utf
   const dup = [...fns].filter(f => vars.has(f));
   ok('names  ' + p, !dup.length, dup.length ? 'variable and function share a name: ' + dup.join(', ') : '');
   const rk = (code.match(/var rank=function\(v\)\{.*?\}\}?/) || [''])[0];
-  if (rk) ok('voice  ' + p, /enhanced[^?]*\?0:2/.test(rk) && /localStorage\.getItem\('voice'\)/.test(code), 'uses the voice chosen on the Voice page, else enhanced/premium en-GB first');
+  if (rk) ok('voice  ' + p, /enhanced[^?]*\?0:2/.test(rk) && /localStorage\.getItem\('voice'\)/.test(code), 'uses the voice chosen on the Options page, else enhanced/premium en-GB first');
   ok('rules  ' + p, /lang="en-GB"/.test(html) && /user-scalable=no/.test(html) && /gesturestart/.test(html) && /selectstart/.test(html), 'en-GB, no zoom, no select');
 }
 
@@ -34,5 +34,16 @@ for (const x of m.QX.concat(m.QA)) for (let r = 0; r < 3; r++) { const o = m.opt
 ok('maths answers', !bad, (m.QX.length + m.QA.length) + ' questions');
 const rx = m.range('x'), ra = m.range('+'), rr = []; for (let i = 0; i < 400; i++) rr.push(...m.pickRound(5));
 ok('maths levels', rr.every(q => { const r = q.op === 'x' ? rx : ra; return q.a >= r[0] && q.a <= r[1] && q.b >= r[0] && q.b <= r[1]; }), 'start: adding ' + ra.join('-') + ', times ' + rx.join('-'));
+
+// 4. Reading: every word has a picture and is unique; every question has CHOICES different lowercase words, exactly one right;
+//    rounds have no repeats. Also reports how often a same-first-letter and a rhyming distractor are offered.
+const rd = L.reading(); let rbad = [], first = 0, rhyme = 0, runs = 0;
+const names = rd.WORDS.map(x => x.w); if (new Set(names).size !== names.length) rbad.push('duplicate word');
+for (const x of rd.WORDS) { if (!x.pic) rbad.push(x.w + ' has no picture');
+  for (let r = 0; r < 30; r++) { const o = rd.options(x); runs++;
+    if (o.length !== rd.CHOICES || new Set(o).size !== rd.CHOICES || o.filter(z => z === x.w).length !== 1 || o.some(z => !/^[a-z]+$/.test(z))) rbad.push(x.w + ': ' + o.join(','));
+    if (o.some(z => z !== x.w && z[0] === x.w[0])) first++; if (o.some(z => z !== x.w && z.slice(-2) === x.w.slice(-2))) rhyme++; } }
+for (let i = 0; i < 300; i++) { const r = rd.pickRound(5); if (new Set(r.map(x => x.w)).size !== 5) { rbad.push('repeat in a round'); break; } }
+ok('reading words', !rbad.length, rbad.length ? rbad.slice(0, 3).join(' | ') : rd.WORDS.length + ' words; same first letter offered ' + Math.round(first / runs * 100) + '%, a rhyme ' + Math.round(rhyme / runs * 100) + '%');
 
 process.exit(fail ? 1 : 0);
