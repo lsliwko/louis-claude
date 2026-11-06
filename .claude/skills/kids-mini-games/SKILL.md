@@ -40,10 +40,11 @@ The repo is public: never put the child's name in files, commit messages or page
 ## Adding a new game
 
 1. Create `<folder>/index.html` as one self-contained file: inline CSS and JS, Google Fonts only, no other external assets.
-2. Put a round **house button** in the top-left that links to `../`, and the icon links after `<title>`: `../favicon.svg`, `../favicon-32.png` and `../apple-touch-icon.png` (gold star on blue, at the site root; `check.js` checks every page has them).
-3. Add a tile to the root `index.html`: copy the existing `<a class="tile">`, change `href`, `aria-label`, the icon SVG and the name. Tiles use the blue `--t1`/`--t1-bg` pair unless the user asks for another colour.
-4. Add the game to `README.md`.
-5. Test it (see Testing), commit, push, then tell the user it'll be live in a few minutes and to close and reopen the tab.
+2. Portrait only: a web page can't lock rotation on iPhone, so every page has the `.turnme` cover (CSS + a `<div class="turnme">` right after `<body>`, copied from any page): when held sideways (landscape, height ≤ 500px) it covers the page with a phone turning upright (`check.js` and smoke check it). The real lock is the iPhone's Portrait Orientation Lock in Control Centre.
+3. Put a round **house button** in the top-left that links to `../`, and the icon links after `<title>`: `../favicon.svg`, `../favicon-32.png` and `../apple-touch-icon.png` (gold star on blue, at the site root; `check.js` checks every page has them).
+4. Add a tile to the root `index.html`: copy the existing `<a class="tile">`, change `href`, `aria-label`, the icon SVG and the name. Tiles use the blue `--t1`/`--t1-bg` pair unless the user asks for another colour.
+5. Add the game to `README.md`.
+6. Test it (see Testing), commit, push, then tell the user it'll be live in a few minutes and to close and reopen the tab.
 
 ## Design rules (the user has asked for all of these)
 

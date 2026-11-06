@@ -20,6 +20,7 @@ Static checks, no browser. Exit code 1 if anything fails.
 - **reading words**: every Reading word has a picture and is unique; every question has 4 different lowercase words with exactly one right; no word is offered with another name for the same picture (`SAME`); the right word lands in each place about equally often; rounds have no repeats; reports how often a same-first-letter and a rhyming word are offered.
 - **reading levels**: every level has at least 10 words; a round only uses open levels; 8 right first time opens the next level and 5 misses go back one; choices never use words more than one level above the picture's.
 - **icon**: every page links the favicon (`favicon.svg`, `favicon-32.png`) and the home-screen icon (`apple-touch-icon.png`), and the files exist.
+- **turn**: every page has the sideways cover (`.turnme`, shown in landscape).
 - **names**: no `var` shares a name with a function on the same page (the variable would replace the function).
 - **house rules** on every page: `lang="en-GB"`, `user-scalable=no`, Safari gesture blocking (`gesturestart`) and selection blocking (`selectstart`).
 - **Tricky Words clashes**: no game word is accepted for another game word (through sound-alikes, patterns or fuzzy matching).

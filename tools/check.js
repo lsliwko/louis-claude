@@ -19,6 +19,7 @@ for (const p of pages) { const html = fs.readFileSync(path.join(L.ROOT, p), 'utf
   if (rk) ok('voice  ' + p, /enhanced[^?]*\?0:2/.test(rk) && /localStorage\.getItem\('voice'\)/.test(code), 'uses the voice chosen on the Options page, else enhanced/premium en-GB first');
   const pre = p === 'index.html' ? '' : '../';
   ok('icon   ' + p, ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png'].every(f => html.includes('href="' + pre + f + '"') && fs.existsSync(path.join(L.ROOT, f))), 'favicon and home-screen icon');
+  ok('turn   ' + p, html.includes('class="turnme"') && /orientation:\s*landscape/.test(html), 'sideways cover');
   ok('rules  ' + p, /lang="en-GB"/.test(html) && /user-scalable=no/.test(html) && /gesturestart/.test(html) && /selectstart/.test(html), 'en-GB, no zoom, no select');
 }
 

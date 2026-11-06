@@ -7,6 +7,7 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 - `index.html` is the menu. It shows one picture tile per game.
 - Each game lives in its own folder with its own `index.html`, for example `tricky-words/`.
 - `favicon.svg`, `favicon-32.png` and `apple-touch-icon.png` are the site icon (a gold star on blue), linked from every page.
+- Portrait only: when the phone is held sideways, every page is covered by a picture of a phone turning upright (web pages can't lock rotation on iPhone; Portrait Orientation Lock in Control Centre does).
 
 ## Adding a game
 

@@ -79,9 +79,19 @@ button:active{transform:scale(.97)}
 .end h2{font-family:var(--display);font-size:30px;margin:0;text-wrap:balance}
 #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Phone held sideways: a web page can't lock rotation on iPhone, so cover the page with a "turn me upright" picture */
+.turnme{display:none}
+@media (orientation:landscape) and (max-height:500px){
+  .turnme{display:flex;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;background:var(--ground,#EEF4FB);color:var(--accent,#2F5BEA)}
+  .turnme svg{animation:turnme 2s ease-in-out infinite}
+}
+@keyframes turnme{0%,20%{transform:rotate(-90deg)}60%,100%{transform:rotate(0)}}
+@media (prefers-reduced-motion:reduce){.turnme svg{animation:none}}
 </style>
 </head>
 <body>
+<div class="turnme" aria-hidden="true"><svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 <div class="wrap">
   <div class="top"><a class="home" href="../" aria-label="Back to all games"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></a><span id="prog" style="flex:1;margin-left:12px">Question 1 of 5</span><span class="stars" id="stars" aria-label="Stars"></span></div>

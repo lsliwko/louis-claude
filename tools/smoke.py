@@ -155,5 +155,15 @@ with sync_playwright() as p:
                     if pg.evaluate("res[0]==='ok'"): scrib.append(ch)
                 report('scribble scribbling over the pad gets no star', not scrib, ('starred: ' + ' '.join(scrib)) if scrib else 'o l A 7')
             pg.close()
+    # phone held sideways: every page is covered by the turn-upright picture (nothing underneath can be tapped); upright it's hidden
+    side = []
+    for g in games:
+        pg = b.new_page(viewport={'width': 740, 'height': 360}); pg.goto((ROOT / g).as_uri()); pg.wait_for_timeout(200)
+        cov = pg.evaluate("(()=>{const t=document.querySelector('.turnme');const e=document.elementFromPoint(innerWidth/2,innerHeight/2);return !!t&&getComputedStyle(t).display!=='none'&&t.contains(e)})()")
+        pg.set_viewport_size({'width': 390, 'height': 740}); pg.wait_for_timeout(100)
+        up = pg.evaluate("getComputedStyle(document.querySelector('.turnme')).display==='none'")
+        if not (cov and up): side.append(g)
+        pg.close()
+    report('sideways phone shows the turn-upright cover on every page', not side, ('failed: ' + ' '.join(side)) if side else '%d pages' % len(games))
     b.close()
 sys.exit(1 if fails else 0)
