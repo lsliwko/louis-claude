@@ -37,13 +37,17 @@ ok('maths levels', rr.every(q => { const r = q.op === 'x' ? rx : ra; return q.a 
 
 // 4. Reading: every word has a picture and is unique; every question has CHOICES different lowercase words, exactly one right;
 //    rounds have no repeats. Also reports how often a same-first-letter and a rhyming distractor are offered.
-const rd = L.reading(); let rbad = [], first = 0, rhyme = 0, runs = 0;
+const rd = L.reading(); let rbad = [], first = 0, rhyme = 0, runs = 0; const pos = [0, 0, 0, 0];
 const names = rd.WORDS.map(x => x.w); if (new Set(names).size !== names.length) rbad.push('duplicate word');
 for (const x of rd.WORDS) { if (!x.pic) rbad.push(x.w + ' has no picture');
   for (let r = 0; r < 30; r++) { const o = rd.options(x); runs++;
     if (o.length !== rd.CHOICES || new Set(o).size !== rd.CHOICES || o.filter(z => z === x.w).length !== 1 || o.some(z => !/^[a-z]+$/.test(z))) rbad.push(x.w + ': ' + o.join(','));
+    if (o.some(z => z !== x.w && rd.same(x.w, z))) rbad.push(x.w + ' offered with ' + o.filter(z => z !== x.w && rd.same(x.w, z)));
+    pos[o.indexOf(x.w)]++;
     if (o.some(z => z !== x.w && z[0] === x.w[0])) first++; if (o.some(z => z !== x.w && z.slice(-2) === x.w.slice(-2))) rhyme++; } }
 for (let i = 0; i < 300; i++) { const r = rd.pickRound(5); if (new Set(r.map(x => x.w)).size !== 5) { rbad.push('repeat in a round'); break; } }
-ok('reading words', !rbad.length, rbad.length ? rbad.slice(0, 3).join(' | ') : rd.WORDS.length + ' words; same first letter offered ' + Math.round(first / runs * 100) + '%, a rhyme ' + Math.round(rhyme / runs * 100) + '%');
+// the right word must land in each of the 4 places about equally often (so he can't learn a position)
+if (pos.some(v => Math.abs(v / runs - 0.25) > 0.04)) rbad.push('right word positions uneven: ' + pos.join('/'));
+ok('reading words', !rbad.length, rbad.length ? rbad.slice(0, 3).join(' | ') : rd.WORDS.length + ' words; same first letter offered ' + Math.round(first / runs * 100) + '%, a rhyme ' + Math.round(rhyme / runs * 100) + '%; right word in places 1-4: ' + pos.map(v => Math.round(v / runs * 100) + '%').join(' '));
 
 process.exit(fail ? 1 : 0);

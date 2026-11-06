@@ -50,8 +50,10 @@ button:active{transform:scale(.97)}
 .hear:disabled{opacity:.3;cursor:default}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @keyframes pulse{50%{transform:scale(1.03)}}
-.pic{font-size:clamp(96px,30vw,140px);line-height:1.1;margin:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.pic{font-size:clamp(130px,44vw,210px);line-height:1.1;margin:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .card{position:relative}
+#card{padding:14px 14px 10px}
+#card .hear{position:absolute;top:12px;right:12px;z-index:1}
 /* Start button over the card: on iPhone sound and speech only turn on after a real tap */
 .go{position:absolute;inset:0;margin:0;padding:0;border:none;border-radius:24px;background:color-mix(in srgb,var(--card) 70%,transparent);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .go[hidden]{display:none}
@@ -204,10 +206,22 @@ var WORDS=[['cat','\u{1F431}'],['dog','\u{1F436}'],['pig','\u{1F437}'],['hen','\
   ['bus','\u{1F68C}'],['car','\u{1F697}'],['van','\u{1F690}'],['ship','\u{1F6A2}'],['bed','\u{1F6CF}\uFE0F'],['hat','\u{1F3A9}'],['sock','\u{1F9E6}'],['egg','\u{1F95A}'],
   ['cake','\u{1F382}'],['bell','\u{1F514}'],['kite','\u{1FA81}'],['box','\u{1F4E6}'],['key','\u{1F511}'],['pen','\u{1F58A}\uFE0F'],['map','\u{1F5FA}\uFE0F'],['web','\u{1F578}\uFE0F'],
   ['nut','\u{1F95C}'],['leg','\u{1F9B5}'],['ear','\u{1F442}'],['tree','\u{1F333}'],['ball','\u26BD'],['drum','\u{1F941}'],['book','\u{1F4D6}'],['milk','\u{1F95B}'],
-  ['corn','\u{1F33D}'],['ring','\u{1F48D}']].map(function(p){return {w:p[0],pic:p[1],k:p[0]}});
+  ['corn','\u{1F33D}'],['ring','\u{1F48D}'],
+  ['bear','\u{1F43B}'],['goat','\u{1F410}'],['mouse','\u{1F42D}'],['horse','\u{1F434}'],['sheep','\u{1F411}'],['wolf','\u{1F43A}'],['crab','\u{1F980}'],['snail','\u{1F40C}'],
+  ['shark','\u{1F988}'],['whale','\u{1F433}'],['seal','\u{1F9AD}'],['snake','\u{1F40D}'],['lion','\u{1F981}'],['worm','\u{1FAB1}'],['shell','\u{1F41A}'],['nest','\u{1FAB9}'],
+  ['apple','\u{1F34E}'],['pear','\u{1F350}'],['lemon','\u{1F34B}'],['grapes','\u{1F347}'],['carrot','\u{1F955}'],['bread','\u{1F35E}'],['cheese','\u{1F9C0}'],['pizza','\u{1F355}'],
+  ['cup','\u2615'],['shoe','\u{1F45F}'],['boot','\u{1F462}'],['coat','\u{1F9E5}'],['dress','\u{1F457}'],['crown','\u{1F451}'],['cap','\u{1F9E2}'],['bag','\u{1F392}'],
+  ['house','\u{1F3E0}'],['tent','\u26FA'],['door','\u{1F6AA}'],['bath','\u{1F6C1}'],['clock','\u23F0'],['gift','\u{1F381}'],['lock','\u{1F512}'],['bin','\u{1F5D1}\uFE0F'],
+  ['train','\u{1F682}'],['plane','\u2708\uFE0F'],['boat','\u26F5'],['bike','\u{1F6B2}'],['rocket','\u{1F680}'],
+  ['hand','\u270B'],['foot','\u{1F9B6}'],['nose','\u{1F443}'],['tooth','\u{1F9B7}'],['bone','\u{1F9B4}'],
+  ['log','\u{1FAB5}'],['rock','\u{1FAA8}'],['leaf','\u{1F341}'],['rose','\u{1F339}'],['axe','\u{1FA93}']].map(function(p){return {w:p[0],pic:p[1],k:p[0]}});
 var EXTRA=('cot cap can cut hut hot hit pin pot pet ten tin man mat sat log dig big bin bun run fun hug jug mud rug tub fan pan jam ham wet net jet red '
   +'dip zip top mop hop fog dot lid kid six fix tap nap lap sad dad pad wig fig job dish wish shop chop rock lock luck sack back well tell king sing '
   +'song look hook took tall wall fall call lake make bake take bite soon free three stop chip from fist bang bark born horn silk sick kick dock fox').split(' ');
+// Words that could name the same picture: never offered together (e.g. no 'cap' for the top hat).
+var SAME=[['hat','cap'],['ship','boat'],['bed','cot'],['house','hut','tent'],['cup','mug','pot'],['mouse','rat'],['boot','shoe'],['car','van'],['plane','jet'],
+  ['foot','leg'],['rock','stone'],['log','stick'],['bag','sack'],['bath','tub'],['goat','kid'],['dog','pup'],['bin','can']];
+function same(a,b){return SAME.some(function(g){return g.indexOf(a)>=0&&g.indexOf(b)>=0})}
 var CHOICES=4,TRIES=2;
 var MKEY='rd-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
@@ -217,7 +231,7 @@ function noteHit(k){if(MISS[k]){MISS[k]--;if(!MISS[k])delete MISS[k];saveMiss()}
 function pickRound(k){var pool=WORDS.slice(),out=[];while(out.length<k&&pool.length){var tot=0,ws=pool.map(function(v){var x=1+2*(MISS[v.k]||0);tot+=x;return x}),r=Math.random()*tot,i=0;
   while(i<pool.length-1&&r>=ws[i]){r-=ws[i];i++}out.push(pool.splice(i,1)[0])}return out}
 // Four words: the right one, one with the same first letter, one that rhymes (same last two letters), and one more of a similar length.
-function options(x){var w=x.w,all={},seen={},out=[];WORDS.forEach(function(v){all[v.w]=1});EXTRA.forEach(function(v){all[v]=1});delete all[w];seen[w]=1;
+function options(x){var w=x.w,all={},seen={},out=[];WORDS.forEach(function(v){all[v.w]=1});EXTRA.forEach(function(v){all[v]=1});delete all[w];seen[w]=1;Object.keys(all).forEach(function(c){if(same(w,c))delete all[c]});
   var cand=shuf(Object.keys(all)),add=function(f){for(var i=0;i<cand.length&&out.length<CHOICES-1;i++){var c=cand[i];if(!seen[c]&&f(c)){seen[c]=1;out.push(c);return}}};
   add(function(c){return c[0]===w[0]});add(function(c){return c.slice(-2)===w.slice(-2)});
   add(function(c){return Math.abs(c.length-w.length)<=1});while(out.length<CHOICES-1)add(function(){return true});
@@ -244,14 +258,18 @@ function reveal(x){Array.prototype.forEach.call($('opts').children,function(b){i
 function answer(b,v){if(busy||b.disabled)return;ac();var x=order[n];
   if(v===x.w)return right(b);
   b.classList.add('no','shake');b.disabled=true;wrong()}
+// On iPhone, starting the cheer while the word is still being spoken (or cutting the speech off) leaves Web Audio silent,
+// so wait for speech to finish (2.5s at most), then play.
+function afterSpeech(fn){var t0=Date.now();(function chk(){var sp=false;try{sp=speechSynthesis.speaking||speechSynthesis.pending}catch(e){}
+  if(sp&&Date.now()-t0<2500){setTimeout(chk,100);return}setTimeout(function(){whenAudio(fn)},sp?0:150)})()}
 function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);reveal(x);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
-  try{speechSynthesis.cancel()}catch(e){}whenAudio(cheer);fireworks();afterFx(function(){n++;n<order.length?show():end()})}
+  afterSpeech(function(){cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})})}
 // One mistake is allowed: the 2nd wrong tap shows the right word in green, says it, gives a grey star and moves on.
-function wrong(){if(busy)return;var x=order[n];tries++;whenAudio(buzz);if(tries===1)noteMiss(x.k);
+function wrong(){if(busy)return;var x=order[n];tries++;if(tries===1)noteMiss(x.k);
   if(tries>=TRIES){busy=true;mark(false);reveal(x);fb(x.w,'info');
-    setTimeout(function(){say('It says '+x.w)},850);setTimeout(function(){n++;n<order.length?show():end()},3800);return}
-  fb('Please try again','no');setTimeout(function(){say('Please try again')},850)}
+    afterSpeech(function(){buzz();setTimeout(function(){say('It says '+x.w)},850);setTimeout(function(){n++;n<order.length?show():end()},3800)});return}
+  fb('Please try again','no');afterSpeech(function(){buzz();setTimeout(function(){say('Please try again')},850)})}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
