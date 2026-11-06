@@ -6,6 +6,7 @@ Simple learning games, published with GitHub Pages at https://lsliwko.github.io/
 
 - `index.html` is the menu. It shows one picture tile per game.
 - Each game lives in its own folder with its own `index.html`, for example `tricky-words/`.
+- `favicon.svg`, `favicon-32.png` and `apple-touch-icon.png` are the site icon (a gold star on blue), linked from every page.
 
 ## Adding a game
 
