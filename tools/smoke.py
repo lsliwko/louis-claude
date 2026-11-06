@@ -155,6 +155,35 @@ with sync_playwright() as p:
                     if pg.evaluate("res[0]==='ok'"): scrib.append(ch)
                 report('scribble scribbling over the pad gets no star', not scrib, ('starred: ' + ' '.join(scrib)) if scrib else 'o l A 7')
             pg.close()
+    # stars and prizes: a gold star in a game is banked; the menu shows it; Prizes asks before spending, refuses without
+    # enough stars, shows a badge once bought; Options can mark it given (stars stay spent) or give the stars back
+    ctx = b.new_context(viewport={'width': 393, 'height': 760}); pg = ctx.new_page(); errs2 = []
+    pg.on('pageerror', lambda e: errs2.append(str(e)))
+    pg.goto((ROOT / 'reading/index.html').as_uri()); pg.wait_for_timeout(300); pg.evaluate('say=function(){}'); pg.click('#go')
+    w = pg.evaluate('order[n].w'); pg.click(f".opt[data-w='{w}']"); pg.wait_for_timeout(200)
+    earned = pg.evaluate("JSON.parse(localStorage.getItem('star-bank')).earned")
+    pg.goto((ROOT / 'index.html').as_uri()); pg.wait_for_timeout(200); menu = pg.evaluate("document.getElementById('bankn').textContent")
+    report('stars from a game are banked and shown on the menu', earned == 1 and menu == '1', 'banked %s, menu shows %s' % (earned, menu))
+    pg.goto((ROOT / 'prizes/index.html').as_uri()); pg.wait_for_timeout(200); pg.evaluate('say=function(){}')
+    pg.locator('.prize').first.click(); poor = pg.evaluate("$('ask').hidden")
+    pg.evaluate("localStorage.setItem('star-bank',JSON.stringify({earned:150,spent:0,owed:{}}));draw()")
+    pg.locator('.prize').first.click(); asked = pg.evaluate("!$('ask').hidden"); pg.click('#askno')
+    kept = pg.evaluate("JSON.parse(localStorage.getItem('star-bank')).spent") == 0
+    pg.locator('.prize').first.click(); pg.click('#askyes'); pg.wait_for_timeout(200)
+    bk = pg.evaluate("JSON.parse(localStorage.getItem('star-bank'))"); badge = pg.locator('.prize').first.locator('.owed').count()
+    pg.locator('.prize').first.click(); again = pg.evaluate("$('ask').hidden")  # only 50 left now
+    report('prizes ask first, spend stars, show a badge', poor and asked and kept and bk['spent'] == 100 and bk['owed'].get('sushi') == 1 and badge == 1 and again and not errs2,
+           'too few: no ask %s; ask %s; cross keeps stars %s; tick: %s, badge %d; then too few again %s %s' % (poor, asked, kept, bk, badge, again, errs2[:1]))
+    pg.evaluate("localStorage.setItem('star-bank',JSON.stringify({earned:300,spent:200,owed:{sushi:1,milkshake:1}}))")
+    pg.goto((ROOT / 'options/index.html').as_uri()); pg.wait_for_timeout(200)
+    for d in '1985': pg.locator('#keys button', has_text=d).first.click()
+    rows = pg.locator('#owed .row').count()
+    pg.locator('#owed .row', has_text='Sushi').get_by_role('button', name='Given').click()
+    pg.locator('#owed .row', has_text='Strawberry').get_by_role('button', name='Give stars back').click()
+    bk = pg.evaluate("JSON.parse(localStorage.getItem('star-bank'))")
+    report('options: given keeps stars spent, give back returns them', rows == 2 and bk['owed'] == {} and bk['spent'] == 100 and pg.evaluate("!$('noowed').hidden"),
+           'rows %d, after: %s' % (rows, bk))
+    ctx.close()
     # phone held sideways: every page is covered by the turn-upright picture (nothing underneath can be tapped); upright it's hidden
     side = []
     for g in games:

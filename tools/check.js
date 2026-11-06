@@ -65,4 +65,18 @@ ok('reading words', !rbad.length, rbad.length ? rbad.slice(0, 3).join(' | ') : r
   if (up !== 1 || down !== 0) bad.push('level up/down: ' + up + ', ' + down);
   ok('reading levels', !bad.length, bad.length ? bad.slice(0, 3).join(' | ') : per.length + ' levels of ' + per.join('/') + ' words; up after 8 right, down after 5 misses'); }
 
+// 6. Stars and prizes: the star-bank code is the same on every page that has it; every game adds its gold stars to it;
+//    the menu, Prizes and Options pages use it; the Prizes and Options pages list the same prizes.
+{ const pages = ['index.html', ...fs.readdirSync(L.ROOT).filter(d => fs.existsSync(path.join(L.ROOT, d, 'index.html'))).map(d => d + '/index.html')];
+  const src = p => fs.readFileSync(path.join(L.ROOT, p), 'utf8');
+  const blk = p => { const s = L.scripts(src(p)).join('\n'), i = s.indexOf('// Star bank, shared by every game'); if (i < 0) return null; const j = s.indexOf('function addStar(){', i); return s.slice(i, s.indexOf('\n', j)); };
+  const ref = blk('prizes/index.html'), bad = [];
+  for (const p of pages) { const b = blk(p), js = L.scripts(src(p)).join('\n'), game = /function mark\(ok\)/.test(js);
+    if ((game || ['index.html', 'prizes/index.html', 'options/index.html'].includes(p)) && !b) bad.push(p + ' has no star bank');
+    if (b && b !== ref) bad.push(p + ' star bank differs from prizes/');
+    if (game && !/function mark\(ok\)\{[^}]*if\(ok\)addStar\(\)/.test(js)) bad.push(p + ' does not bank gold stars'); }
+  const plist = p => { const s = L.scripts(src(p)).join('\n'), m = s.match(/var PRIZES=(\[[\s\S]*?\]);/); return m ? m[1] : null; };
+  if (!plist('prizes/index.html') || plist('prizes/index.html') !== plist('options/index.html')) bad.push('PRIZES differ between prizes/ and options/');
+  ok('stars  bank and prizes', !bad.length, bad.length ? bad.slice(0, 3).join(' | ') : 'same star bank on every page, every game banks gold stars, prize lists match'); }
+
 process.exit(fail ? 1 : 0);

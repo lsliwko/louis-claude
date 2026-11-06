@@ -200,7 +200,13 @@ function fb(t,k){var f=$('fb');f.textContent=t;f.className='fb'+(k?' '+k:'')}
 var STAR='<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/>',res=[];
 function drawStars(){var h='';for(var i=0;i<res.length;i++)h+='<svg class="st'+(res[i]?' '+res[i]:'')+'" viewBox="0 0 24 24" aria-hidden="true">'+STAR+'</svg>';$('stars').innerHTML=h;
   $('stars').setAttribute('aria-label',score+' stars')}
-function mark(ok){res[n]=ok?'ok':'miss';drawStars();var el=$('stars').children[n];if(el)el.classList.add('pop')}
+// Star bank, shared by every game on this phone: gold stars earned in all games, stars spent here,
+// and prizes bought but not yet given (owed, shown as a star badge for the grown-up).
+var BANK_KEY='star-bank';
+function bank(){var b={earned:0,spent:0,owed:{}};try{var s=JSON.parse(localStorage.getItem(BANK_KEY)||'null');if(s){b.earned=+s.earned||0;b.spent=+s.spent||0;b.owed=s.owed&&typeof s.owed==='object'?s.owed:{}}}catch(e){}return b}
+function saveBank(b){try{localStorage.setItem(BANK_KEY,JSON.stringify(b))}catch(e){}}
+function addStar(){var b=bank();b.earned++;saveBank(b)}
+function mark(ok){res[n]=ok?'ok':'miss';if(ok)addStar();drawStars();var el=$('stars').children[n];if(el)el.classList.add('pop')}
 
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 // Questions: times a x b with a and b from 1 to 10, adding a + b with a and b from 0 to 25.

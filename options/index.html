@@ -37,6 +37,10 @@ p{margin:0;color:var(--soft)}
 button{font:inherit;cursor:pointer;border-radius:999px;border:2px solid var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:700;min-height:44px}
 .play{width:48px;height:48px;padding:0;display:inline-flex;align-items:center;justify-content:center;flex:none}
 .use{padding:0 16px;flex:none}
+.ppic{font-size:40px;line-height:1;flex:none;position:relative;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.ppic small{position:absolute;right:-6px;bottom:-2px;font-size:20px}
+.acts{display:flex;flex-direction:column;gap:6px;flex:none}
+.acts button{padding:0 14px;font-size:15px}
 .row.on .use{border-color:var(--good);background:var(--good);color:#fff}
 .auto{align-self:flex-start;padding:0 18px}
 .help{font-size:15px}
@@ -74,6 +78,10 @@ h2{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.2;mar
     <div class="keys" id="keys"></div>
   </section>
   <div id="opts" hidden>
+  <h2>Prizes</h2>
+  <p id="stars">Stars</p>
+  <ul class="list" id="owed"></ul>
+  <p class="help" id="noowed">Nothing waiting to be given.</p>
   <h2>Voice</h2>
   <p>The British voices on this phone. Tap ▶ to hear one and <b>Use</b> to choose it for every game. The choice is saved on this phone.</p>
   <ul class="list" id="list"></ul>
@@ -115,7 +123,7 @@ var typed='';
 function dots(){var d=$('dots').children;for(var i=0;i<4;i++)d[i].textContent=typed.charAt(i)}
 function key(k){if(k==='del'){typed=typed.slice(0,-1);dots();return}if(typed.length>=4)return;typed+=k;dots();
   if(typed.length===4){var age=new Date().getFullYear()-parseInt(typed,10);
-    if(age>=18&&age<=110){$('gate').hidden=true;$('opts').hidden=false;draw()}
+    if(age>=18&&age<=110){$('gate').hidden=true;$('opts').hidden=false;draw();drawPrizes()}
     else setTimeout(function(){var d=$('dots');d.classList.remove('bad');void d.offsetWidth;d.classList.add('bad');typed='';dots()},250)}}
 ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(function(k){var b=document.createElement('button');b.type='button';
   if(!k){b.className='blank';b.tabIndex=-1;b.setAttribute('aria-hidden','true')}
@@ -127,6 +135,26 @@ try{speechSynthesis.onvoiceschanged=function(){if(!$('opts').hidden)draw()}}catc
 ['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
 document.addEventListener('dblclick',function(e){e.preventDefault()},{passive:false});
 document.addEventListener('selectstart',function(e){if(!(e.target&&e.target.closest&&e.target.closest('p')))e.preventDefault()});
+// Star bank, shared by every game on this phone: gold stars earned in all games, stars spent here,
+// and prizes bought but not yet given (owed, shown as a star badge for the grown-up).
+var BANK_KEY='star-bank';
+function bank(){var b={earned:0,spent:0,owed:{}};try{var s=JSON.parse(localStorage.getItem(BANK_KEY)||'null');if(s){b.earned=+s.earned||0;b.spent=+s.spent||0;b.owed=s.owed&&typeof s.owed==='object'?s.owed:{}}}catch(e){}return b}
+function saveBank(b){try{localStorage.setItem(BANK_KEY,JSON.stringify(b))}catch(e){}}
+function addStar(){var b=bank();b.earned++;saveBank(b)}
+// The prizes (same list as the Prizes page; check.js checks they match).
+var PRIZES=[{id:'sushi',name:'Sushi',say:'Sushi',pic:'\u{1F363}',cost:100},
+  {id:'milkshake',name:'Strawberry milkshake',say:'Strawberry milkshake',pic:'\u{1F964}',badge:'\u{1F353}',cost:100}];
+// Prizes bought and waiting: "Given" clears one (the stars stay spent); "Give stars back" clears one and returns its stars.
+function drawPrizes(){var b=bank(),L=$('owed');L.innerHTML='';var any=false;
+  $('stars').textContent='Stars: '+Math.max(0,b.earned-b.spent)+' to spend ('+b.earned+' earned, '+b.spent+' spent).';
+  PRIZES.forEach(function(p){var k=b.owed[p.id]||0;if(!k)return;any=true;var li=document.createElement('li');li.className='row';
+    var pc=document.createElement('span');pc.className='ppic';pc.setAttribute('aria-hidden','true');pc.innerHTML=p.pic+(p.badge?'<small>'+p.badge+'</small>':'');
+    var w=document.createElement('div');w.className='who';var nb=document.createElement('b');nb.textContent=p.name;var sm=document.createElement('small');sm.textContent=k+' to give';w.appendChild(nb);w.appendChild(sm);
+    var acts=document.createElement('div');acts.className='acts';
+    var g=document.createElement('button');g.type='button';g.className='use';g.textContent='Given';g.onclick=function(){var c=bank();if(c.owed[p.id]>0){c.owed[p.id]--;if(!c.owed[p.id])delete c.owed[p.id];saveBank(c)}drawPrizes()};
+    var r=document.createElement('button');r.type='button';r.className='use';r.textContent='Give stars back';r.onclick=function(){var c=bank();if(c.owed[p.id]>0){c.owed[p.id]--;if(!c.owed[p.id])delete c.owed[p.id];c.spent=Math.max(0,c.spent-p.cost);saveBank(c)}drawPrizes()};
+    acts.appendChild(g);acts.appendChild(r);li.appendChild(pc);li.appendChild(w);li.appendChild(acts);L.appendChild(li)});
+  $('noowed').hidden=any}
 </script>
 </body>
 </html>

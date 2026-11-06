@@ -36,6 +36,8 @@ h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.1;mar
 .tile:active{transform:scale(.97)}
 .tile:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .icon{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.bank{align-self:center;display:inline-flex;align-items:center;gap:8px;font-family:var(--display);font-weight:700;font-size:34px;color:var(--ink);text-decoration:none;font-variant-numeric:tabular-nums;margin-top:-8px}
+.bank svg{width:40px;height:40px}.bank svg path{fill:#E3A21A;stroke:#E3A21A;stroke-width:1.6;stroke-linejoin:round}
 .grown{align-self:center;color:var(--soft);font-size:15px;text-decoration:none;padding:8px 14px;border-radius:999px;border:1px solid var(--line)}
 .name{font-family:var(--display);font-weight:700;font-size:20px;line-height:1.2;text-align:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -54,6 +56,7 @@ h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.1;mar
 <div class="turnme" aria-hidden="true"><svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/></svg></div>
 <div class="wrap">
   <h1>Games</h1>
+  <a class="bank" href="prizes/" aria-label="Stars, go to prizes"><b id="bankn">0</b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg></a>
   <nav class="grid" aria-label="Games">
     <!-- To add a game: put it in its own folder with an index.html, then copy a tile below and change the link, colours and icon. -->
     <a class="tile" href="tricky-words/" aria-label="Tricky Words">
@@ -80,11 +83,23 @@ h1{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.1;mar
       </span>
       <span class="name">Reading</span>
     </a>
+    <a class="tile" href="prizes/" aria-label="Prizes">
+      <span class="icon"><svg width="96" height="96" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#2F5BEA"/><path fill="#F5B82E" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round" d="M32 9.5l6.6 13.6 14.9 2.1-10.8 10.4 2.6 14.8L32 43.3l-13.3 7.1 2.6-14.8-10.8-10.4 14.9-2.1z"/></svg></span>
+      <span class="name">Prizes</span>
+    </a>
   </nav>
   <!-- For grown-ups (asks for their year of birth first) -->
   <a class="grown" href="options/">Options</a>
 </div>
 <script>
+// Star bank, shared by every game on this phone: gold stars earned in all games, stars spent here,
+// and prizes bought but not yet given (owed, shown as a star badge for the grown-up).
+var BANK_KEY='star-bank';
+function bank(){var b={earned:0,spent:0,owed:{}};try{var s=JSON.parse(localStorage.getItem(BANK_KEY)||'null');if(s){b.earned=+s.earned||0;b.spent=+s.spent||0;b.owed=s.owed&&typeof s.owed==='object'?s.owed:{}}}catch(e){}return b}
+function saveBank(b){try{localStorage.setItem(BANK_KEY,JSON.stringify(b))}catch(e){}}
+function addStar(){var b=bank();b.earned++;saveBank(b)}
+function showBank(){var b=bank(),el=document.getElementById('bankn');if(el)el.textContent=Math.max(0,b.earned-b.spent)}
+showBank();window.addEventListener('pageshow',showBank);
 // No pinch or double-tap zoom (Safari ignores user-scalable=no, so block its gesture events too).
 ['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
 document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
