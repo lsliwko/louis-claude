@@ -51,6 +51,8 @@ button:active{transform:scale(.97)}
 .hear{width:72px;height:72px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--accent);background:var(--accent-bg);border-color:var(--accent)}
 .hear.tap{animation:pulse .5s 2}
 .hear:disabled{opacity:.3;cursor:default}
+/* Until the ▶ start button is tapped, the other buttons (except home) are faded and can't be pressed */
+.waiting .opt,.waiting .hear,.waiting .tool{opacity:.35;pointer-events:none}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @keyframes pulse{50%{transform:scale(1.03)}}
 /* the picture word under the buttons: first letter bold in the accent colour, the rest lighter */
@@ -305,7 +307,11 @@ function wrong(){if(busy)return;var x=order[n];tries++;whenAudio(buzz);if(tries=
   fb('Stay on the shape. Try again!','no');setTimeout(function(){say('Stay on the shape. Please try again')},850)}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}
 // The start tap turns on sound and speech (inside the tap), then says what to draw. The speaker button does the same.
-function begin(){var g=$('go');if(g.hidden)return false;g.hidden=true;spoken=true;ac();return true}
+function begin(){var g=$('go');if(g.hidden)return false;g.hidden=true;wait(false);spoken=true;ac();return true}
+// Until ▶ is tapped: fade and disable every button but home (and the answers in Reading).
+function wait(on){document.body.classList.toggle('waiting',on);['hear','erase'].forEach(function(id){var b=$(id);if(b)b.disabled=on});
+  var o=$('opts');if(o)Array.prototype.forEach.call(o.children,function(b){if(!b.classList.contains('no')&&!busy)b.disabled=on})}
+if(!$('go').hidden)wait(true);
 $('go').onclick=function(){if(!begin())return;say(order[n].say)};
 $('hear').onclick=function(){begin();if(!lock('hear'))return;ac();var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].say)};
 $('erase').onclick=function(){if(!lock('erase')||busy)return;clearPad()};

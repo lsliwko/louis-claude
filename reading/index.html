@@ -51,6 +51,8 @@ button:active{transform:scale(.97)}
 .hear{width:72px;height:72px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--accent);background:var(--accent-bg);border-color:var(--accent)}
 .hear.tap{animation:pulse .5s 2}
 .hear:disabled{opacity:.3;cursor:default}
+/* Until the ▶ start button is tapped, the other buttons (except home) are faded and can't be pressed */
+.waiting .opt,.waiting .hear,.waiting .tool{opacity:.35;pointer-events:none}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @keyframes pulse{50%{transform:scale(1.03)}}
 .pic{font-size:clamp(100px,min(50vw,calc(100vh - 535px)),240px);line-height:1.1;margin:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
@@ -291,17 +293,21 @@ function unlockSpeech(e){if(speechOn)return;speechOn=true;var t=e&&e.target,b=t&
 document.addEventListener('touchend',unlockSpeech,true);document.addEventListener('click',unlockSpeech,true);
 $('hear').onclick=function(){if(!lock('hear'))return;begin();ac();var h=$('hear');h.classList.remove('tap');void h.offsetWidth;h.classList.add('tap');say(order[n].w)};
 // The start tap turns on sound and speech (inside the tap), then says the word. The speaker button does the same.
-function begin(){var g=$('go');if(g.hidden)return false;g.hidden=true;speechOn=true;ac();return true}
+function begin(){var g=$('go');if(g.hidden)return false;g.hidden=true;wait(false);speechOn=true;ac();return true}
+// Until ▶ is tapped: fade and disable every button but home (and the answers in Reading).
+function wait(on){document.body.classList.toggle('waiting',on);['hear'].forEach(function(id){var b=$(id);if(b)b.disabled=on});
+  var o=$('opts');if(o)Array.prototype.forEach.call(o.children,function(b){if(!b.classList.contains('no')&&!busy)b.disabled=on})}
+if(!$('go').hidden)wait(true);
 $('go').onclick=function(){if(!begin())return;say(order[n].w)};
 function show(){var x=order[n];tries=0;busy=false;
   $('prog').textContent='Word '+(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';
   $('q').textContent=x.pic;fb('');
   var box=$('opts');box.innerHTML='';
   options(x).forEach(function(v){var b=document.createElement('button');b.type='button';b.className='opt';b.textContent=v;b.setAttribute('aria-label',v);
-    b.onclick=function(){answer(b,v)};box.appendChild(b)});
+    if(!$('go').hidden)b.disabled=true;b.onclick=function(){answer(b,v)};box.appendChild(b)});
   if($('go').hidden)setTimeout(function(){if(order[n]===x&&!busy)say(x.w)},300)}
 function reveal(x){Array.prototype.forEach.call($('opts').children,function(b){if(b.textContent===x.w)b.classList.add('ok');b.disabled=true})}
-function answer(b,v){if(busy||b.disabled)return;ac();var x=order[n];
+function answer(b,v){if(busy||b.disabled||!$('go').hidden)return;ac();var x=order[n];
   if(v===x.w)return right(b);
   b.classList.add('no','shake');b.disabled=true;wrong()}
 // On iPhone, starting the cheer while the word is still being spoken (or cutting the speech off) leaves Web Audio silent,

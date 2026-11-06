@@ -50,7 +50,11 @@ with sync_playwright() as p:
                 shown = pg.evaluate("!$('go').hidden")
                 pg.evaluate('''(()=>{window.__said=[];const ss=speechSynthesis;window.__sp=ss.speak.bind(ss);ss.speak=function(u){window.__said.push(u.text)};
                   $('go').addEventListener('click',()=>{window.__inTap=window.__said.slice()},{once:true})})()''')
+                locked = pg.evaluate("document.body.classList.contains('waiting') && $('hear').disabled && [...$('opts').children].every(b=>b.disabled)")
+                pg.locator('.opt').first.click(force=True); still = pg.evaluate("tries===0 && res.length===0")
                 pg.click('#go'); said = pg.evaluate('window.__inTap||[]'); word = pg.evaluate('order[n].w')
+                freed = pg.evaluate("!document.body.classList.contains('waiting') && !$('hear').disabled && [...$('opts').children].every(b=>!b.disabled)")
+                report('reading buttons wait for the start tap', locked and still and freed, 'before: locked %s, a tap on a word ignored %s; after: free %s' % (locked, still, freed))
                 report('reading start button says the word', shown and pg.evaluate("$('go').hidden") and word in said, 'said in the tap: %s (word %s)' % (said, word))
                 pg.click(f".opt:text-is('{word}')"); pg.wait_for_timeout(200)
                 report('reading right word gives a gold star', pg.evaluate("res[0]==='ok'"))
@@ -77,12 +81,15 @@ with sync_playwright() as p:
                 # opening: a start button covers the pad (on iPhone only a tap, not drawing, turns sound on); tapping it must
                 # speak inside the tap even with the silent load-time prompt stuck in the queue, and uncover the pad
                 shown = pg.evaluate("!$('go').hidden")
+                slocked = pg.evaluate("document.body.classList.contains('waiting') && $('hear').disabled && $('erase').disabled")
                 pg.evaluate('''(()=>{window.__calls=0;const ss=speechSynthesis;window.__sp=ss.speak.bind(ss);
                   Object.defineProperty(ss,'pending',{configurable:true,get:()=>true});
                   ss.speak=function(u){window.__calls++};$('go').addEventListener('click',()=>{window.__inTap=window.__calls},{once:true})})()''')
                 pg.click('#go')
                 sync = pg.evaluate("(()=>{const ss=speechSynthesis;ss.speak=window.__sp;delete ss.pending;return window.__inTap||0})()")
                 gone = pg.evaluate("$('go').hidden")
+                sfreed = pg.evaluate("!document.body.classList.contains('waiting') && !$('hear').disabled && !$('erase').disabled")
+                report('scribble buttons wait for the start tap', slocked and sfreed, 'locked before %s, free after %s' % (slocked, sfreed))
                 report('scribble start button speaks inside the tap', shown and gone and sync > 0, 'shown %s, hidden after tap %s, speak during tap %d' % (shown, gone, sync))
             if g == 'scribble/index.html' and w == 390 and full:
                 pg.evaluate('afterFx=function(){};fireworks=function(){};say=function(){}'); missed = []; worst = 0
