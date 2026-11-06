@@ -50,10 +50,9 @@ button:active{transform:scale(.97)}
 .hear:disabled{opacity:.3;cursor:default}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 @keyframes pulse{50%{transform:scale(1.03)}}
-.pic{font-size:clamp(130px,44vw,210px);line-height:1.1;margin:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.pic{font-size:clamp(100px,min(50vw,calc(100vh - 535px)),240px);line-height:1.1;margin:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .card{position:relative}
-#card{padding:14px 14px 10px}
-#card .hear{position:absolute;top:12px;right:12px;z-index:1}
+#card{padding:16px 16px 18px;gap:6px}
 /* Start button over the card: on iPhone sound and speech only turn on after a real tap */
 .go{position:absolute;inset:0;margin:0;padding:0;border:none;border-radius:24px;background:color-mix(in srgb,var(--card) 70%,transparent);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .go[hidden]{display:none}
