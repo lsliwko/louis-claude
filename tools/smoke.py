@@ -171,15 +171,18 @@ with sync_playwright() as p:
     kept = pg.evaluate("JSON.parse(localStorage.getItem('star-bank')).spent") == 0
     pg.locator('.prize').first.click(); pg.click('#askyes'); pg.wait_for_timeout(200)
     bk = pg.evaluate("JSON.parse(localStorage.getItem('star-bank'))"); badge = pg.locator('.prize').first.locator('.owed').count()
-    pg.locator('.prize').first.click(); again = pg.evaluate("$('ask').hidden")  # only 50 left now
+    pg.evaluate("localStorage.setItem('star-bank',JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('star-bank')),{earned:400})));draw()")
+    pg.locator('.prize').first.click(); again = pg.evaluate("$('ask').hidden")  # one sushi already waiting: can't buy another
     report('prizes ask first, spend stars, show a badge', poor and asked and kept and bk['spent'] == 100 and bk['owed'].get('sushi') == 1 and badge == 1 and again and not errs2,
-           'too few: no ask %s; ask %s; cross keeps stars %s; tick: %s, badge %d; then too few again %s %s' % (poor, asked, kept, bk, badge, again, errs2[:1]))
+           'too few: no ask %s; ask %s; cross keeps stars %s; tick: %s, badge %d; a second one refused %s %s' % (poor, asked, kept, bk, badge, again, errs2[:1]))
     pg.evaluate("localStorage.setItem('star-bank',JSON.stringify({earned:300,spent:200,owed:{sushi:1,milkshake:1}}))")
     pg.goto((ROOT / 'options/index.html').as_uri()); pg.wait_for_timeout(200)
     for d in '1985': pg.locator('#keys button', has_text=d).first.click()
     rows = pg.locator('#owed .row').count()
     pg.click('#plus50'); plus = pg.evaluate("JSON.parse(localStorage.getItem('star-bank')).earned")
-    report('options +50 stars button', plus == 350 and '150 to spend' in pg.evaluate("$('stars').textContent"), 'earned %s, %s' % (plus, pg.evaluate("$('stars').textContent")))
+    pg.click('#minus50'); pg.click('#minus50'); pg.click('#minus50'); pg.click('#minus50'); minus = pg.evaluate("JSON.parse(localStorage.getItem('star-bank')).earned")
+    report('options +50 and -50 stars buttons', plus == 350 and minus == 200 and '0 to spend' in pg.evaluate("$('stars').textContent"), 'after +50 earned %s; after 4 x -50 earned %s (spent 200), %s' % (plus, minus, pg.evaluate("$('stars').textContent")))
+    pg.click('#plus50'); pg.click('#plus50'); pg.click('#plus50')
     pg.locator('#owed .row', has_text='Sushi').get_by_role('button', name='Given').click()
     pg.locator('#owed .row', has_text='Strawberry').get_by_role('button', name='Give stars back').click()
     bk = pg.evaluate("JSON.parse(localStorage.getItem('star-bank'))")

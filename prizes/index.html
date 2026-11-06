@@ -104,6 +104,7 @@ button:active{transform:scale(.97)}
 .prize .pcost svg{width:24px;height:24px}.prize .pcost svg path{fill:var(--star);stroke:var(--star);stroke-width:1.6;stroke-linejoin:round}
 .prize .pbar{height:12px;background:var(--line);border-radius:6px;overflow:hidden}
 .prize .pbar i{display:block;height:100%;background:var(--star);border-radius:6px;transition:width .4s}
+.prize.wait .pbar{visibility:hidden}
 .prize.can{border-color:var(--star);box-shadow:0 0 0 3px color-mix(in srgb,var(--star) 35%,transparent)}
 /* Bought and waiting for a grown-up to give it: a gold star badge (with a count) on top */
 .owed{position:absolute;top:-14px;right:-10px;width:54px;height:54px;display:flex;align-items:center;justify-content:center}
@@ -255,23 +256,23 @@ function have(){var b=bank();return Math.max(0,b.earned-b.spent)}
 function pic(p){return p.pic+(p.badge?'<small>'+p.badge+'</small>':'')}
 function draw(){var b=bank(),h=have(),L=$('prizes');$('bankn').textContent=h;L.innerHTML='';
   PRIZES.forEach(function(p){var li=document.createElement('li'),bt=document.createElement('button');bt.type='button';
-    bt.className='prize'+(h>=p.cost?' can':'');bt.setAttribute('aria-label',p.name+', '+p.cost+' stars');
-    var owe=b.owed[p.id]||0;
+    var owe=b.owed[p.id]||0;bt.className='prize'+(h>=p.cost&&!owe?' can':'')+(owe?' wait':'');bt.setAttribute('aria-label',p.name+', '+p.cost+' stars');
     bt.innerHTML='<span class="ppic" aria-hidden="true">'+pic(p)+'</span><span class="pinfo"><span class="pname">'+p.name+'</span>'+
       '<span class="pcost">'+p.cost+STARSVG+'</span><span class="pbar"><i style="width:'+Math.min(100,h/p.cost*100)+'%"></i></span></span>'+
-      (owe?'<span class="owed" aria-label="Bought, waiting"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg><b>'+(owe>1?owe:'')+'</b></span>':'');
-    bt.onclick=function(){tap(p,bt)};li.appendChild(bt);L.appendChild(li)})}
+      (owe?'<span class="owed" aria-label="Bought, waiting"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg><b>'+''+'</b></span>':'');
+    bt.onclick=function(){tap(p,bt,owe)};li.appendChild(bt);L.appendChild(li)})}
 // Tapping a prize says it; with enough stars it asks (big tick / cross) before spending, otherwise it says how many are needed.
+// Only one of each prize at a time: once bought, it waits (star badge) until a grown-up marks it given in Options.
 var asking=null;
-function tap(p,bt){ac();if(have()>=p.cost){asking=p;$('apic').innerHTML=pic(p);$('acost').textContent=p.cost;$('ask').hidden=false;say(p.say+'. '+p.cost+' stars?');return}
+function tap(p,bt,owe){ac();if(owe){say(p.say+' is coming! Ask a grown-up.');return}if(have()>=p.cost){asking=p;$('apic').innerHTML=pic(p);$('acost').textContent=p.cost;$('ask').hidden=false;say(p.say+'. '+p.cost+' stars?');return}
   bt.classList.remove('shake');void bt.offsetWidth;bt.classList.add('shake');
   say(p.say+'. You need '+p.cost+' stars. You have '+have()+'. Keep playing!')}
 // iPhone: speech leaves Web Audio silent until a tap remakes it (see Reading), so the tick tap stops speech and remakes the sound engine.
 function freshAudio(){try{speechSynthesis.cancel()}catch(e){}
   if(spokeSince||!AC||AC.state!=='running'){try{if(AC&&AC.close)AC.close()}catch(e){}AC=null;unlocked=false;spokeSince=false}ac()}
 $('askyes').onclick=function(){var p=asking;if(!p)return;asking=null;$('ask').hidden=true;freshAudio();
-  var b=bank();if(b.earned-b.spent<p.cost){draw();return}
-  b.spent+=p.cost;b.owed[p.id]=(b.owed[p.id]||0)+1;saveBank(b);draw();
+  var b=bank();if(b.earned-b.spent<p.cost||b.owed[p.id]){draw();return}
+  b.spent+=p.cost;b.owed[p.id]=1;saveBank(b);draw();
   whenAudio(cheer);fireworks();setTimeout(function(){say('Yay! '+p.say+'!')},1600)};
 $('askno').onclick=function(){asking=null;$('ask').hidden=true;try{speechSynthesis.cancel()}catch(e){}};
 window.addEventListener('pageshow',draw);

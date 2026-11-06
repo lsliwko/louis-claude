@@ -80,7 +80,7 @@ h2{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.2;mar
   <div id="opts" hidden>
   <h2>Prizes</h2>
   <p id="stars">Stars</p>
-  <button class="auto" id="plus50" type="button">+50 stars (for testing)</button>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="auto" id="plus50" type="button">+50 stars (for testing)</button><button class="auto" id="minus50" type="button">−50 stars (for testing)</button></div>
   <ul class="list" id="owed"></ul>
   <p class="help" id="noowed">Nothing waiting to be given.</p>
   <h2>Voice</h2>
@@ -150,7 +150,7 @@ function drawPrizes(){var b=bank(),L=$('owed');L.innerHTML='';var any=false;
   $('stars').textContent='Stars: '+Math.max(0,b.earned-b.spent)+' to spend ('+b.earned+' earned, '+b.spent+' spent).';
   PRIZES.forEach(function(p){var k=b.owed[p.id]||0;if(!k)return;any=true;var li=document.createElement('li');li.className='row';
     var pc=document.createElement('span');pc.className='ppic';pc.setAttribute('aria-hidden','true');pc.innerHTML=p.pic+(p.badge?'<small>'+p.badge+'</small>':'');
-    var w=document.createElement('div');w.className='who';var nb=document.createElement('b');nb.textContent=p.name;var sm=document.createElement('small');sm.textContent=k+' to give';w.appendChild(nb);w.appendChild(sm);
+    var w=document.createElement('div');w.className='who';var nb=document.createElement('b');nb.textContent=p.name;var sm=document.createElement('small');sm.textContent='Bought: give it, then tap Given';w.appendChild(nb);w.appendChild(sm);
     var acts=document.createElement('div');acts.className='acts';
     var g=document.createElement('button');g.type='button';g.className='use';g.textContent='Given';g.onclick=function(){var c=bank();if(c.owed[p.id]>0){c.owed[p.id]--;if(!c.owed[p.id])delete c.owed[p.id];saveBank(c)}drawPrizes()};
     var r=document.createElement('button');r.type='button';r.className='use';r.textContent='Give stars back';r.onclick=function(){var c=bank();if(c.owed[p.id]>0){c.owed[p.id]--;if(!c.owed[p.id])delete c.owed[p.id];c.spent=Math.max(0,c.spent-p.cost);saveBank(c)}drawPrizes()};
@@ -158,6 +158,8 @@ function drawPrizes(){var b=bank(),L=$('owed');L.innerHTML='';var any=false;
   $('noowed').hidden=any}
 // For testing: add 50 stars (counted as earned).
 $('plus50').onclick=function(){var b=bank();b.earned+=50;saveBank(b);drawPrizes()};
+// and take 50 away (never below 0 to spend)
+$('minus50').onclick=function(){var b=bank();b.earned=Math.max(b.spent,b.earned-50);saveBank(b);drawPrizes()};
 </script>
 </body>
 </html>
