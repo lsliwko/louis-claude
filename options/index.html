@@ -80,6 +80,7 @@ h2{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.2;mar
   <div id="opts" hidden>
   <h2>Prizes</h2>
   <p id="stars">Stars</p>
+  <button class="auto" id="plus50" type="button">+50 stars (for testing)</button>
   <ul class="list" id="owed"></ul>
   <p class="help" id="noowed">Nothing waiting to be given.</p>
   <h2>Voice</h2>
@@ -155,6 +156,8 @@ function drawPrizes(){var b=bank(),L=$('owed');L.innerHTML='';var any=false;
     var r=document.createElement('button');r.type='button';r.className='use';r.textContent='Give stars back';r.onclick=function(){var c=bank();if(c.owed[p.id]>0){c.owed[p.id]--;if(!c.owed[p.id])delete c.owed[p.id];c.spent=Math.max(0,c.spent-p.cost);saveBank(c)}drawPrizes()};
     acts.appendChild(g);acts.appendChild(r);li.appendChild(pc);li.appendChild(w);li.appendChild(acts);L.appendChild(li)});
   $('noowed').hidden=any}
+// For testing: add 50 stars (counted as earned).
+$('plus50').onclick=function(){var b=bank();b.earned+=50;saveBank(b);drawPrizes()};
 </script>
 </body>
 </html>

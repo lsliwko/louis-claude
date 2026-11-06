@@ -178,10 +178,12 @@ with sync_playwright() as p:
     pg.goto((ROOT / 'options/index.html').as_uri()); pg.wait_for_timeout(200)
     for d in '1985': pg.locator('#keys button', has_text=d).first.click()
     rows = pg.locator('#owed .row').count()
+    pg.click('#plus50'); plus = pg.evaluate("JSON.parse(localStorage.getItem('star-bank')).earned")
+    report('options +50 stars button', plus == 350 and '150 to spend' in pg.evaluate("$('stars').textContent"), 'earned %s, %s' % (plus, pg.evaluate("$('stars').textContent")))
     pg.locator('#owed .row', has_text='Sushi').get_by_role('button', name='Given').click()
     pg.locator('#owed .row', has_text='Strawberry').get_by_role('button', name='Give stars back').click()
     bk = pg.evaluate("JSON.parse(localStorage.getItem('star-bank'))")
-    report('options: given keeps stars spent, give back returns them', rows == 2 and bk['owed'] == {} and bk['spent'] == 100 and pg.evaluate("!$('noowed').hidden"),
+    report('options: given keeps stars spent, give back returns them', rows == 2 and bk['owed'] == {} and bk['spent'] == 100 and bk['earned'] == 350 and pg.evaluate("!$('noowed').hidden"),
            'rows %d, after: %s' % (rows, bk))
     ctx.close()
     # phone held sideways: every page is covered by the turn-upright picture (nothing underneath can be tapped); upright it's hidden
