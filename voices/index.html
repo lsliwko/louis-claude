@@ -46,25 +46,31 @@ button{font:inherit;cursor:pointer;border-radius:999px;border:2px solid var(--ac
   <ul class="list" id="list"></ul>
   <button class="auto" id="auto" type="button">Let the games choose</button>
   <p class="help" id="none" hidden>No British voices found yet. Wait a moment, or add one in the phone's settings (below).</p>
-  <p class="help">More voices: on iPhone, Settings › Accessibility › Spoken Content (called Read &amp; Speak on newer iPhones) › Voices › English, then pick a UK voice and download it. Enhanced and Premium versions sound most natural. Siri's own voices can't be used by web pages. Then come back here and reopen this page.</p>
+  <p class="help">On iPhone, web pages only see the built-in voices: voices you download (like Jamie Premium or Arthur Enhanced) are hidden from all websites, in Safari and Chrome alike. To try one anyway: in Settings › Accessibility › Spoken Content (Read &amp; Speak on newer iPhones) › Voices › English, choose it for English (UK), then come back and tap ▶ on <b>Phone's British voice</b>. If it sounds like your choice, tap <b>Use</b> there.</p>
 </div>
 <script>
 function $(id){return document.getElementById(id)}
 var SAMPLE='Bee like ball. Well done! Three times four is twelve.',KEY='voice';
 function saved(){try{return localStorage.getItem(KEY)||''}catch(e){return''}}
 function save(n){try{n?localStorage.setItem(KEY,n):localStorage.removeItem(KEY)}catch(e){}}
-function kind(v){var n=v.name||'';return /premium/i.test(n)?'Premium':/enhanced/i.test(n)?'Enhanced':/neural|natural/i.test(n)?'Natural':'Standard'}
+function kind(v){var n=(v.name||'')+' '+(v.voiceURI||'');return /premium/i.test(n)?'Premium':/enhanced/i.test(n)?'Enhanced':/neural|natural/i.test(n)?'Natural':'Standard'}
 function voices(){try{return (speechSynthesis.getVoices()||[]).filter(function(v){return /^en[-_]GB/i.test(v.lang)})}catch(e){return[]}}
-function hear(v){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(SAMPLE);u.voice=v;u.lang='en-GB';u.rate=0.8;speechSynthesis.speak(u)}catch(e){}}
-function draw(){var vs=voices(),cur=saved(),L=$('list');L.innerHTML='';$('none').hidden=vs.length>0;
+function hear(v){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(SAMPLE);if(v)u.voice=v;u.lang='en-GB';u.rate=0.8;speechSynthesis.speak(u)}catch(e){}}
+function row(L,name,sub,on,play,use){var li=document.createElement('li');li.className='row'+(on?' on':'');
+  var w=document.createElement('div');w.className='who';var b=document.createElement('b');b.textContent=name;var s=document.createElement('small');s.textContent=sub;w.appendChild(b);w.appendChild(s);
+  var p=document.createElement('button');p.className='play';p.type='button';p.setAttribute('aria-label','Hear '+name);
+  p.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg>';p.onclick=play;
+  var u=document.createElement('button');u.className='use';u.type='button';u.textContent=on?'Chosen':'Use';u.onclick=use;
+  li.appendChild(p);li.appendChild(w);li.appendChild(u);L.appendChild(li)}
+function draw(){var all=voices(),cur=saved(),L=$('list');L.innerHTML='';
+  // iPhone sometimes lists the same voice twice: show each once
+  var seen={},vs=all.filter(function(v){var k=v.name+'|'+(v.voiceURI||'');if(seen[k])return false;seen[k]=1;return true});
+  $('none').hidden=vs.length>0;
+  row(L,"Phone's British voice","No voice named: the phone picks its own British English voice",cur==='phone',function(){hear(null)},function(){save('phone');draw();hear(null)});
   var order={Premium:0,Enhanced:1,Natural:1,Standard:2};
   vs.sort(function(a,b){return order[kind(a)]-order[kind(b)]||a.name.localeCompare(b.name)});
-  vs.forEach(function(v){var li=document.createElement('li');li.className='row'+(v.name===cur?' on':'');
-    var w=document.createElement('div');w.className='who';var b=document.createElement('b');b.textContent=v.name;var s=document.createElement('small');s.textContent=kind(v)+(v.localService===false?' · needs internet':'');w.appendChild(b);w.appendChild(s);
-    var p=document.createElement('button');p.className='play';p.type='button';p.setAttribute('aria-label','Hear '+v.name);
-    p.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg>';p.onclick=function(){hear(v)};
-    var u=document.createElement('button');u.className='use';u.type='button';u.textContent=v.name===cur?'Chosen':'Use';u.onclick=function(){save(v.name);draw();hear(v)};
-    li.appendChild(p);li.appendChild(w);li.appendChild(u);L.appendChild(li)});
+  vs.forEach(function(v){var id=v.voiceURI&&v.voiceURI!==v.name?' · '+v.voiceURI:'';
+    row(L,v.name,kind(v)+(v.localService===false?' · needs internet':'')+id,v.name===cur,function(){hear(v)},function(){save(v.name);draw();hear(v)})});
   $('auto').textContent=cur?'Let the games choose':'The games are choosing';}
 $('auto').onclick=function(){save('');draw()};
 draw();try{speechSynthesis.onvoiceschanged=draw}catch(e){}setTimeout(draw,600);setTimeout(draw,2000);

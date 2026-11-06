@@ -23,16 +23,17 @@ with sync_playwright() as p:
             if shots and w == 390: SHOTS.mkdir(exist_ok=True); pg.screenshot(path=str(SHOTS / (g.replace('/', '_') + '.png')))
             if g == 'voices/index.html' and w == 390:
                 # choose a voice on the Voice page, then a game must use it (fake British voices, as on an iPhone)
-                fake = '''(()=>{const vs=['Daniel','Daniel (Enhanced)','Serena (Premium)','Martha'].map(n=>({name:n,lang:'en-GB',localService:true}));
+                fake = '''(()=>{const vs=['Daniel','Daniel','Daniel (Enhanced)','Serena (Premium)','Martha'].map(n=>({name:n,voiceURI:n,lang:'en-GB',localService:true}));
                   vs.push({name:'Samantha',lang:'en-US',localService:true});speechSynthesis.getVoices=()=>vs;})()'''
                 pg.evaluate(fake); pg.evaluate('draw()')
                 rows = pg.locator('.row').count(); pg.locator('.row', has_text='Martha').locator('.use').click()
                 chosen = pg.evaluate("localStorage.getItem('voice')")
                 pg.add_init_script(fake.replace('(()=>{', '(()=>{try{').replace('})()', '}catch(e){}})()'))
                 pg.goto((ROOT / 'scribble/index.html').as_uri()); pg.wait_for_timeout(300); pg.evaluate('pickVoice()')
-                used = pg.evaluate('VOICE&&VOICE.name'); pg.evaluate("localStorage.removeItem('voice');pickVoice()"); auto = pg.evaluate('VOICE&&VOICE.name')
-                report('voice page choice is used by the games', rows == 4 and chosen == 'Martha' and used == 'Martha' and auto != 'Martha' and 'Enhanced' in auto + 'Premium',
-                       'rows %d (British only), chosen %s, game uses %s, without a choice %s' % (rows, chosen, used, auto))
+                used = pg.evaluate('VOICE&&VOICE.name'); pg.evaluate("localStorage.setItem('voice','phone');pickVoice()"); phone = pg.evaluate('VOICE===null')
+                pg.evaluate("localStorage.removeItem('voice');pickVoice()"); auto = pg.evaluate('VOICE&&VOICE.name')
+                report('voice page choice is used by the games', rows == 5 and chosen == 'Martha' and used == 'Martha' and phone and auto != 'Martha' and 'Enhanced' in auto + 'Premium',
+                       'rows %d (phone + 4 British, duplicate shown once), chosen %s, game uses %s, phone voice %s, without a choice %s' % (rows, chosen, used, phone, auto))
             if g == 'maths/index.html' and w == 390:
                 c = pg.evaluate('ans(order[n])'); pg.click(f".opt:text-is('{c}')"); pg.wait_for_timeout(200)
                 report('maths right answer gives a gold star', pg.evaluate("res[0]==='ok'"))
