@@ -93,4 +93,13 @@ ok('reading words', !rbad.length, rbad.length ? rbad.slice(0, 3).join(' | ') : r
     if (/audioSession\.type\s*=/.test(s)) bad.push('tricky-words: sets the audio session (breaks the mic)'); }
   ok('sound  iPhone rules', !bad.length, bad.length ? bad.join(' | ') : 'speech in the tap, sound engine remade after speech, Tricky Words mic path unchanged'); }
 
+// 8. The Options page's copy of the levels matches the games (Maths ranges, Reading level names).
+{ const src = p => L.scripts(fs.readFileSync(path.join(L.ROOT, p), 'utf8')).join('\n'), op = src('options/index.html'), bad = [];
+  const ml = (src('maths/index.html').match(/var LEVELS=(\{[^\n]*\});/) || [])[1], om = (op.match(/var MATHS_LEVELS=(\{[^\n]*\});/) || [])[1];
+  if (!ml || ml !== om) bad.push('Maths levels differ');
+  const rn = [...fs.readFileSync(path.join(L.ROOT, 'reading/index.html'), 'utf8').matchAll(/^  \/\/ \d: ([^\n]+)\n  '/gm)].map(m => m[1]);
+  const orl = JSON.parse((op.match(/var READING_LEVELS=(\[[^\n]*\]);/) || [, '[]'])[1]);
+  if (JSON.stringify(rn) !== JSON.stringify(orl) || rn.length !== L.reading().LEVELS.length) bad.push('Reading levels differ');
+  ok('levels options page', !bad.length, bad.length ? bad.join(' | ') : 'Maths and Reading levels match the games'); }
+
 process.exit(fail ? 1 : 0);

@@ -22,6 +22,7 @@ Static checks, no browser. Exit code 1 if anything fails.
 - **icon**: every page links the favicon (`favicon.svg`, `favicon-32.png`) and the home-screen icon (`apple-touch-icon.png`), and the files exist.
 - **turn**: every page has the sideways cover (`.turnme`, shown in landscape).
 - **sound**: the iPhone sound rules: no delay between cancel and speak in Maths, Scribble, Reading and Prizes; `say()` sets `spokeSince`; the answer taps in Maths and Reading and the ✓ tap in Prizes call `freshAudio()`; Scribble calls `trySwap` after strokes; Tricky Words keeps `afterMic` and never sets the audio session.
+- **levels options page**: the Options page's copy of the Maths levels and Reading level names matches the games.
 - **stars**: the star-bank code is the same on every page that has it, every game banks its gold stars, and the Prizes and Options pages list the same prizes.
 - **names**: no `var` shares a name with a function on the same page (the variable would replace the function).
 - **house rules** on every page: `lang="en-GB"`, `user-scalable=no`, Safari gesture blocking (`gesturestart`) and selection blocking (`selectstart`).

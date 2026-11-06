@@ -37,6 +37,7 @@ p{margin:0;color:var(--soft)}
 button{font:inherit;cursor:pointer;border-radius:999px;border:2px solid var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:700;min-height:44px}
 .play{width:48px;height:48px;padding:0;display:inline-flex;align-items:center;justify-content:center;flex:none}
 .use{padding:0 16px;flex:none}
+.use:disabled{opacity:.4;cursor:default}
 .ppic{font-size:40px;line-height:1;flex:none;position:relative;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .ppic small{position:absolute;right:-6px;bottom:-2px;font-size:20px}
 
@@ -91,6 +92,9 @@ h2{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.2;mar
   <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="auto" id="plus50" type="button">+50 stars (for testing)</button><button class="auto" id="minus50" type="button">−50 stars (for testing)</button></div>
   <ul class="list" id="owed"></ul>
   <p class="help" id="noowed">Nothing waiting to be given.</p>
+  <h2>Levels</h2>
+  <p class="help">Levels go up when he gets 7 of his last 8 right and down when he struggles. "Back to level 1" starts that game again from the beginning.</p>
+  <ul class="list" id="levels"></ul>
   <h2>Voice</h2>
   <p>The British voices on this phone. Tap ▶ to hear one and <b>Use</b> to choose it for every game. The choice is saved on this phone.</p>
   <ul class="list" id="list"></ul>
@@ -132,7 +136,7 @@ var typed='';
 function dots(){var d=$('dots').children;for(var i=0;i<4;i++)d[i].textContent=typed.charAt(i)}
 function key(k){if(k==='del'){typed=typed.slice(0,-1);dots();return}if(typed.length>=4)return;typed+=k;dots();
   if(typed.length===4){var age=new Date().getFullYear()-parseInt(typed,10);
-    if(age>=18&&age<=110){$('gate').hidden=true;$('opts').hidden=false;draw();drawPrizes()}
+    if(age>=18&&age<=110){$('gate').hidden=true;$('opts').hidden=false;draw();drawPrizes();drawLevels()}
     else setTimeout(function(){var d=$('dots');d.classList.remove('bad');void d.offsetWidth;d.classList.add('bad');typed='';dots()},250)}}
 ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(function(k){var b=document.createElement('button');b.type='button';
   if(!k){b.className='blank';b.tabIndex=-1;b.setAttribute('aria-hidden','true')}
@@ -168,6 +172,29 @@ function drawPrizes(){var b=bank(),L=$('owed');L.innerHTML='';var any=false,tot=
 $('plus50').onclick=function(){var b=bank();b.earned+=50;saveBank(b);drawPrizes()};
 // and take 50 away (never below 0 to spend)
 $('minus50').onclick=function(){var b=bank();b.earned=Math.max(b.spent,b.earned-50);saveBank(b);drawPrizes()};
+// Levels (same as in the games; check.js checks they match). Tricky Words and Scribble have no levels.
+var MATHS_LEVELS={'+':[[0,5],[0,10],[0,15],[0,20],[0,25]],'x':[[2,5],[2,7],[2,10]]};
+var READING_LEVELS=["three-letter words", "blends", "sh ch th ck ng oo ee ar or ow", "long vowels", "two syllables", "longer words"];
+function load(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function drawLevels(){var L=$('levels');L.innerHTML='';
+  var mx=load('mx-level-2')||{},rd=load('rd-level')||{};
+  var lvl=function(o,max){var v=o&&typeof o.lv==='number'?o.lv:0;return Math.max(0,Math.min(v,max-1))};
+  var rows=[
+    {name:'Maths: adding',n:lvl(mx['+'],MATHS_LEVELS['+'].length),of:MATHS_LEVELS['+'].length,what:function(i){var r=MATHS_LEVELS['+'][i];return 'numbers '+r[0]+' to '+r[1]},
+      reset:function(){var v=load('mx-level-2')||{'+':{lv:0,h:[]},'x':{lv:0,h:[]}};v['+']={lv:0,h:[]};if(!v['x'])v['x']={lv:0,h:[]};store('mx-level-2',v)}},
+    {name:'Maths: times',n:lvl(mx['x'],MATHS_LEVELS['x'].length),of:MATHS_LEVELS['x'].length,what:function(i){var r=MATHS_LEVELS['x'][i];return 'times tables '+r[0]+' to '+r[1]},
+      reset:function(){var v=load('mx-level-2')||{'+':{lv:0,h:[]},'x':{lv:0,h:[]}};v['x']={lv:0,h:[]};if(!v['+'])v['+']={lv:0,h:[]};store('mx-level-2',v)}},
+    {name:'Reading',n:lvl(rd,READING_LEVELS.length),of:READING_LEVELS.length,what:function(i){return READING_LEVELS[i]},
+      reset:function(){store('rd-level',{lv:0,h:[]})}}];
+  rows.forEach(function(r){var li=document.createElement('li');li.className='row';
+    var w=document.createElement('div');w.className='who';var b=document.createElement('b');b.textContent=r.name+': level '+(r.n+1)+' of '+r.of;
+    var sm=document.createElement('small');sm.textContent=r.what(r.n);w.appendChild(b);w.appendChild(sm);
+    var bt=document.createElement('button');bt.type='button';bt.className='use';bt.textContent='Back to level 1';bt.disabled=r.n===0;
+    bt.onclick=function(){r.reset();drawLevels()};li.appendChild(w);li.appendChild(bt);L.appendChild(li)});
+  [['Tricky Words','Words'],['Scribble','Shapes']].forEach(function(gw){var g=gw[0];var li=document.createElement('li');li.className='row';var w=document.createElement('div');w.className='who';
+    var b=document.createElement('b');b.textContent=g+': no levels';var sm=document.createElement('small');sm.textContent=gw[1]+' he gets wrong come up more often';
+    w.appendChild(b);w.appendChild(sm);li.appendChild(w);L.appendChild(li)})}
 </script>
 </body>
 </html>
