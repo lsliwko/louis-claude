@@ -299,14 +299,22 @@ function wait(on){document.body.classList.toggle('waiting',on);['hear'].forEach(
   var o=$('opts');if(o)Array.prototype.forEach.call(o.children,function(b){if(!b.classList.contains('no')&&!busy)b.disabled=on})}
 if(!$('go').hidden)wait(true);
 $('go').onclick=function(){if(!begin())return;say(order[n].w)};
-function show(){var x=order[n];tries=0;busy=false;
+// Each question shows all four words in one case, picked at random: lower (cat), capitals (CAT) or a capital first letter (Cat),
+// so he learns to read all three and the case never gives the answer away.
+var CASES=['lower','upper','title'],CASE='lower';
+function cased(w){return CASE==='upper'?w.toUpperCase():CASE==='title'?w.charAt(0).toUpperCase()+w.slice(1):w}
+// Long words (in capitals especially) shrink to fit their button.
+function fitOpts(){Array.prototype.forEach.call($('opts').children,function(b){b.style.fontSize='';var fs=parseFloat(getComputedStyle(b).fontSize);
+  while(b.scrollWidth>b.clientWidth&&fs>18){fs-=2;b.style.fontSize=fs+'px'}})}
+window.addEventListener('resize',fitOpts);
+function show(){var x=order[n];tries=0;busy=false;CASE=CASES[Math.floor(Math.random()*CASES.length)];
   $('prog').textContent='Word '+(n+1)+' of '+order.length;$('bar').style.width=(n/order.length*100)+'%';
   $('q').textContent=x.pic;fb('');
   var box=$('opts');box.innerHTML='';
-  options(x).forEach(function(v){var b=document.createElement('button');b.type='button';b.className='opt';b.textContent=v;b.setAttribute('aria-label',v);
-    if(!$('go').hidden)b.disabled=true;b.onclick=function(){answer(b,v)};box.appendChild(b)});
+  options(x).forEach(function(v){var b=document.createElement('button');b.type='button';b.className='opt';b.textContent=cased(v);b.dataset.w=v;b.setAttribute('aria-label',v);
+    if(!$('go').hidden)b.disabled=true;b.onclick=function(){answer(b,v)};box.appendChild(b)});fitOpts();
   if($('go').hidden)setTimeout(function(){if(order[n]===x&&!busy)say(x.w)},300)}
-function reveal(x){Array.prototype.forEach.call($('opts').children,function(b){if(b.textContent===x.w)b.classList.add('ok');b.disabled=true})}
+function reveal(x){Array.prototype.forEach.call($('opts').children,function(b){if(b.dataset.w===x.w)b.classList.add('ok');b.disabled=true})}
 function answer(b,v){if(busy||b.disabled||!$('go').hidden)return;ac();var x=order[n];
   if(v===x.w)return right(b);
   b.classList.add('no','shake');b.disabled=true;wrong()}
@@ -319,7 +327,7 @@ function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(
   afterSpeech(function(){cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})})}
 // One mistake is allowed: the 2nd wrong tap shows the right word in green, says it, gives a grey star and moves on.
 function wrong(){if(busy)return;var x=order[n];tries++;if(tries===1)noteMiss(x.k);
-  if(tries>=TRIES){busy=true;mark(false);record(0);reveal(x);fb(x.w,'info');
+  if(tries>=TRIES){busy=true;mark(false);record(0);reveal(x);fb(cased(x.w),'info');
     afterSpeech(function(){buzz();setTimeout(function(){say('It says '+x.w)},850);setTimeout(function(){n++;n<order.length?show():end()},3800)});return}
   fb('Please try again','no');afterSpeech(function(){buzz();setTimeout(function(){say('Please try again')},850)})}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}

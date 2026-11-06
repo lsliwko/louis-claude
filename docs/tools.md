@@ -58,7 +58,7 @@ Opens every page (the menu and every game) in headless Chromium with touch, at 3
 - page loads with no JavaScript errors;
 - no sideways scrolling;
 - Options page (at 390 px): a child's birth year is refused and an adult's opens it; then, with pretend voices, lists the phone's own voice plus British ones (a duplicate once), chooses one and checks Scribble then uses it, that "phone" leaves the voice unset, that with no choice an iPhone leaves the voice unset, and that elsewhere it goes back to the best British one.
-- Reading (at 390 px): before ▶ the speaker and the four words are disabled and a tap on a word is ignored; the ▶ start tap says the word inside the tap; the right word gives a gold star and the next word is said when it appears; two wrong words move on with a grey star.
+- Reading (at 390 px): before ▶ the speaker and the four words are disabled and a tap on a word is ignored; the ▶ start tap says the word inside the tap; the right word gives a gold star and the next word is said when it appears; each question uses one letter case for all four words, all three cases turn up, and long words don't spill out of their buttons; two wrong words move on with a grey star.
 - Maths (at 390 px): taps the right answer and checks it scores; then, on a fresh page, taps two wrong answers and checks it moves to the next question with a grey star and no errors.
 
 It doesn't test speech recognition or real sound: those can only be tried on the phone.

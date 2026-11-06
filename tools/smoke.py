@@ -56,14 +56,21 @@ with sync_playwright() as p:
                 freed = pg.evaluate("!document.body.classList.contains('waiting') && !$('hear').disabled && [...$('opts').children].every(b=>!b.disabled)")
                 report('reading buttons wait for the start tap', locked and still and freed, 'before: locked %s, a tap on a word ignored %s; after: free %s' % (locked, still, freed))
                 report('reading start button says the word', shown and pg.evaluate("$('go').hidden") and word in said, 'said in the tap: %s (word %s)' % (said, word))
-                pg.click(f".opt:text-is('{word}')"); pg.wait_for_timeout(200)
+                pg.click(f".opt[data-w='{word}']"); pg.wait_for_timeout(200)
                 report('reading right word gives a gold star', pg.evaluate("res[0]==='ok'"))
                 pg.wait_for_timeout(5000); said2 = pg.evaluate('window.__said'); w2 = pg.evaluate('order[n].w')
                 report('reading next word is said when it appears', pg.evaluate('n') == 1 and w2 in said2, 'n %d, said %s' % (pg.evaluate('n'), said2[-2:]))
+                # letter case: one case for all four words per question, all three cases turn up, and no word spills out of its button
+                cs = pg.evaluate('''(()=>{const seen={},bad=[];const W=['strawberry','screwdriver','watermelon','cat'];
+                  for(let i=0;i<60;i++){order[n]=WORDS.find(w=>w.w===W[i%W.length]);show();const t=[...$('opts').children].map(b=>b.textContent);
+                    const k=t.every(x=>x===x.toLowerCase())?'lower':t.every(x=>x===x.toUpperCase())?'upper':t.every(x=>x[0]===x[0].toUpperCase()&&x.slice(1)===x.slice(1).toLowerCase())?'title':'mixed';
+                    seen[k]=1;[...$('opts').children].forEach(b=>{if(b.scrollWidth>b.clientWidth)bad.push(b.textContent)})}
+                  return [Object.keys(seen).sort().join(' '),bad.slice(0,3)]})()''')
+                report('reading letter case varies, same for all four words', cs[0] == 'lower title upper' and not cs[1], 'cases %s; spilling %s' % (cs[0], cs[1] or 'none'))
                 # two wrong words: grey star, then the next word
                 pg.reload(); pg.wait_for_timeout(400); errs.clear(); pg.click('#go'); n0 = pg.evaluate('n')
                 for _ in range(2):
-                    c = pg.evaluate('order[n].w'); pg.locator('.opt:not([disabled])').filter(has_not_text=c).first.click(); pg.wait_for_timeout(200)
+                    c = pg.evaluate('order[n].w'); pg.locator(f".opt:not([disabled]):not([data-w='{c}'])").first.click(); pg.wait_for_timeout(200)
                 pg.wait_for_timeout(4200)
                 moved = pg.evaluate('n') == n0 + 1 and pg.evaluate("res[%d]==='miss'" % n0)
                 report('reading two wrong words move on', moved and not errs, '; '.join(errs)[:160] or ('n %d -> %d' % (n0, pg.evaluate('n'))))
