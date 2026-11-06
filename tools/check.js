@@ -79,4 +79,18 @@ ok('reading words', !rbad.length, rbad.length ? rbad.slice(0, 3).join(' | ') : r
   if (!plist('prizes/index.html') || plist('prizes/index.html') !== plist('options/index.html')) bad.push('PRIZES differ between prizes/ and options/');
   ok('stars  bank and prizes', !bad.length, bad.length ? bad.slice(0, 3).join(' | ') : 'same star bank on every page, every game banks gold stars, prize lists match'); }
 
+// 7. iPhone sound rules (see the skill's "Sound on iPhone"): no delay between cancel and speak in pages without a microphone;
+//    speech marks spokeSince; tap games remake the sound engine in the answer tap; Scribble tries a fresh one after each stroke;
+//    Tricky Words (microphone) keeps afterMic for the cheer and buzz and never sets the audio session.
+{ const src = p => L.scripts(fs.readFileSync(path.join(L.ROOT, p), 'utf8')).join('\n'), bad = [];
+  for (const p of ['maths/index.html', 'scribble/index.html', 'reading/index.html', 'prizes/index.html']) { const s = src(p);
+    if (/ss\.cancel\(\);setTimeout\(go,/.test(s)) bad.push(p + ': delay between cancel and speak');
+    if (!/function say\(t\)\{spokeSince=true;/.test(s)) bad.push(p + ': say() does not set spokeSince'); }
+  for (const p of ['maths/index.html', 'reading/index.html']) if (!/function answer\(b,v\)\{[^}]*freshAudio\(\)/.test(src(p))) bad.push(p + ': answer tap does not call freshAudio()');
+  if (!/function askyes|\$\('askyes'\)\.onclick=function\(\)\{[^}]*freshAudio\(\)/.test(src('prizes/index.html'))) bad.push('prizes: tick tap does not call freshAudio()');
+  { const s = src('scribble/index.html'); if (!/addEventListener\('touchend',trySwap\)/.test(s) || !/afterSwap\(function\(\)\{whenAudio\(cheer\)\}\)/.test(s)) bad.push('scribble: no trySwap after strokes'); }
+  { const s = src('tricky-words/index.html'); if (!/afterMic\(cheer\)/.test(s) || !/afterMic\(buzz\)/.test(s)) bad.push('tricky-words: cheer/buzz not after the mic closes');
+    if (/audioSession\.type\s*=/.test(s)) bad.push('tricky-words: sets the audio session (breaks the mic)'); }
+  ok('sound  iPhone rules', !bad.length, bad.length ? bad.join(' | ') : 'speech in the tap, sound engine remade after speech, Tricky Words mic path unchanged'); }
+
 process.exit(fail ? 1 : 0);

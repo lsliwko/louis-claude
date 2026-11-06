@@ -39,6 +39,14 @@ button{font:inherit;cursor:pointer;border-radius:999px;border:2px solid var(--ac
 .use{padding:0 16px;flex:none}
 .ppic{font-size:40px;line-height:1;flex:none;position:relative;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .ppic small{position:absolute;right:-6px;bottom:-2px;font-size:20px}
+
+/* Gold star with the number of prizes to give (same badge as on the Prizes page) */
+.owed{position:relative;display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;flex:none;vertical-align:middle}
+.owed svg{position:absolute;inset:0;width:46px;height:46px}.owed svg path{fill:#E3A21A;stroke:#fff;stroke-width:1.2;stroke-linejoin:round}
+.owed b{position:relative;font-family:var(--display);font-size:16px;color:#5a3d00;margin-top:3px}
+h2 .owed{margin-left:6px}
+.ppic{margin:0 14px 0 4px}
+.ppic .owed{position:absolute;top:-16px;right:-18px;width:34px;height:34px}.ppic .owed svg{width:34px;height:34px}.ppic .owed b{font-size:13px;margin-top:2px}
 .acts{display:flex;flex-direction:column;gap:6px;flex:none}
 .acts button{padding:0 14px;font-size:15px}
 .row.on .use{border-color:var(--good);background:var(--good);color:#fff}
@@ -78,7 +86,7 @@ h2{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.2;mar
     <div class="keys" id="keys"></div>
   </section>
   <div id="opts" hidden>
-  <h2>Prizes</h2>
+  <h2>Prizes <span class="owed" id="owedall" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg><b id="owedn">0</b></span></h2>
   <p id="stars">Stars</p>
   <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="auto" id="plus50" type="button">+50 stars (for testing)</button><button class="auto" id="minus50" type="button">−50 stars (for testing)</button></div>
   <ul class="list" id="owed"></ul>
@@ -146,16 +154,16 @@ function addStar(){var b=bank();b.earned++;saveBank(b)}
 var PRIZES=[{id:'sushi',name:'Sushi',say:'Sushi',pic:'\u{1F363}',cost:100},
   {id:'milkshake',name:'Strawberry milkshake',say:'Strawberry milkshake',pic:'\u{1F964}',badge:'\u{1F353}',cost:100}];
 // Prizes bought and waiting: "Given" clears one (the stars stay spent); "Give stars back" clears one and returns its stars.
-function drawPrizes(){var b=bank(),L=$('owed');L.innerHTML='';var any=false;
+function drawPrizes(){var b=bank(),L=$('owed');L.innerHTML='';var any=false,tot=0;
   $('stars').textContent='Stars: '+Math.max(0,b.earned-b.spent)+' to spend ('+b.earned+' earned, '+b.spent+' spent).';
-  PRIZES.forEach(function(p){var k=b.owed[p.id]||0;if(!k)return;any=true;var li=document.createElement('li');li.className='row';
+  PRIZES.forEach(function(p){var k=b.owed[p.id]||0;if(!k)return;any=true;tot+=k;var li=document.createElement('li');li.className='row';
     var pc=document.createElement('span');pc.className='ppic';pc.setAttribute('aria-hidden','true');pc.innerHTML=p.pic+(p.badge?'<small>'+p.badge+'</small>':'');
-    var w=document.createElement('div');w.className='who';var nb=document.createElement('b');nb.textContent=p.name;var sm=document.createElement('small');sm.textContent='Bought: give it, then tap Given';w.appendChild(nb);w.appendChild(sm);
+    var w=document.createElement('div');w.className='who';var nb=document.createElement('b');nb.textContent=p.name;var sm=document.createElement('small');sm.textContent=k+' to give';w.appendChild(nb);w.appendChild(sm);
     var acts=document.createElement('div');acts.className='acts';
     var g=document.createElement('button');g.type='button';g.className='use';g.textContent='Given';g.onclick=function(){var c=bank();if(c.owed[p.id]>0){c.owed[p.id]--;if(!c.owed[p.id])delete c.owed[p.id];saveBank(c)}drawPrizes()};
     var r=document.createElement('button');r.type='button';r.className='use';r.textContent='Give stars back';r.onclick=function(){var c=bank();if(c.owed[p.id]>0){c.owed[p.id]--;if(!c.owed[p.id])delete c.owed[p.id];c.spent=Math.max(0,c.spent-p.cost);saveBank(c)}drawPrizes()};
-    acts.appendChild(g);acts.appendChild(r);li.appendChild(pc);li.appendChild(w);li.appendChild(acts);L.appendChild(li)});
-  $('noowed').hidden=any}
+    acts.appendChild(g);acts.appendChild(r);var bd=document.createElement('span');bd.className='owed';bd.setAttribute('aria-label',k+' to give');bd.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg><b>'+k+'</b>';pc.appendChild(bd);li.appendChild(pc);li.appendChild(w);li.appendChild(acts);L.appendChild(li)});
+  $('noowed').hidden=any;$('owedn').textContent=tot;$('owedall').hidden=!tot}
 // For testing: add 50 stars (counted as earned).
 $('plus50').onclick=function(){var b=bank();b.earned+=50;saveBank(b);drawPrizes()};
 // and take 50 away (never below 0 to spend)

@@ -192,10 +192,13 @@ function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(functio
   var rank=function(v){var nm=(v.name||'')+' '+(v.voiceURI||'');return (/premium|enhanced|neural|natural/i.test(nm)?0:2)+(/super-compact/i.test(nm)?1:0)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
   vs.sort(function(a,b){return rank(a)-rank(b)});VOICE=vs[0]||null}catch(e){}}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
-function say(t){try{var ss=window.speechSynthesis;if(!ss)return;
+var spokeSince=false;   // speech has run since the sound engine was last (re)made
+function say(t){spokeSince=true;try{var ss=window.speechSynthesis;if(!ss)return;
   if(!VOICE)pickVoice();
   var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;UTT.onstart=function(){speechOn=true};ss.resume();ss.speak(UTT)}catch(e){}};
-  if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120)}else go()}catch(e){}}
+  // Speak straight away (iPhone only speaks inside the tap itself, not after a delay); if a browser drops speech
+  // right after cancel, try once more when nothing is queued.
+  if(ss.speaking||ss.pending){ss.cancel();go();setTimeout(function(){if(!ss.speaking&&!ss.pending)go()},400)}else go()}catch(e){}}
 function fb(t,k){var f=$('fb');f.textContent=t;f.className='fb'+(k?' '+k:'')}
 var STAR='<path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/>',res=[];
 function drawStars(){var h='';for(var i=0;i<res.length;i++)h+='<svg class="st'+(res[i]?' '+res[i]:'')+'" viewBox="0 0 24 24" aria-hidden="true">'+STAR+'</svg>';$('stars').innerHTML=h;
@@ -271,7 +274,12 @@ function fitQ(){var q=$('q'),max=$('card').clientWidth-40;q.style.fontSize='';va
 window.addEventListener('resize',fitQ);
 function reveal(x){$('q').innerHTML=x.a+' '+sign(x)+' '+x.b+' = <span class="ans">'+ans(x)+'</span>';fitQ();
   Array.prototype.forEach.call($('opts').children,function(b){if(+b.textContent===ans(x))b.classList.add('ok');b.disabled=true})}
-function answer(b,v){if(busy||b.disabled)return;ac();var x=order[n];
+// iPhone: speech started without a tap ("Please try again", the answer) leaves Web Audio silent even though it says it's running, and only
+// a tap can bring it back. So on each answer tap: stop any speech, remake the sound engine inside the tap if speech has
+// run since, then play. The fireworks and moving on never wait for sound.
+function freshAudio(){try{speechSynthesis.cancel()}catch(e){}
+  if(spokeSince||!AC||AC.state!=='running'){try{if(AC&&AC.close)AC.close()}catch(e){}AC=null;unlocked=false;spokeSince=false}ac()}
+function answer(b,v){if(busy||b.disabled)return;freshAudio();var x=order[n];
   if(v===ans(x))return right(b);
   b.classList.add('no','shake');b.disabled=true;wrong()}
 function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);record(x.op,tries===0?1:0.5);reveal(x);

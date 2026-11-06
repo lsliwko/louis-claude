@@ -241,7 +241,9 @@ var spokeSince=false;   // speech has run since the sound engine was last (re)ma
 function say(t){spokeSince=true;try{var ss=window.speechSynthesis;if(!ss)return;
   if(!VOICE)pickVoice();
   var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;UTT.onstart=function(){speechOn=true};ss.resume();ss.speak(UTT)}catch(e){}};
-  if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120)}else go()}catch(e){}}
+  // Speak straight away (iPhone only speaks inside the tap itself, not after a delay); if a browser drops speech
+  // right after cancel, try once more when nothing is queued.
+  if(ss.speaking||ss.pending){ss.cancel();go();setTimeout(function(){if(!ss.speaking&&!ss.pending)go()},400)}else go()}catch(e){}}
 // Star bank, shared by every game on this phone: gold stars earned in all games, stars spent here,
 // and prizes bought but not yet given (owed, shown as a star badge for the grown-up).
 var BANK_KEY='star-bank';
@@ -259,7 +261,7 @@ function draw(){var b=bank(),h=have(),L=$('prizes');$('bankn').textContent=h;L.i
     var owe=b.owed[p.id]||0;bt.className='prize'+(h>=p.cost&&!owe?' can':'')+(owe?' wait':'');bt.setAttribute('aria-label',p.name+', '+p.cost+' stars');
     bt.innerHTML='<span class="ppic" aria-hidden="true">'+pic(p)+'</span><span class="pinfo"><span class="pname">'+p.name+'</span>'+
       '<span class="pcost">'+p.cost+STARSVG+'</span><span class="pbar"><i style="width:'+Math.min(100,h/p.cost*100)+'%"></i></span></span>'+
-      (owe?'<span class="owed" aria-label="Bought, waiting"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg><b>'+''+'</b></span>':'');
+      (owe?'<span class="owed" aria-label="Bought, '+owe+' waiting"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg><b>'+owe+'</b></span>':'');
     bt.onclick=function(){tap(p,bt,owe)};li.appendChild(bt);L.appendChild(li)})}
 // Tapping a prize says it; with enough stars it asks (big tick / cross) before spending, otherwise it says how many are needed.
 // Only one of each prize at a time: once bought, it waits (star badge) until a grown-up marks it given in Options.

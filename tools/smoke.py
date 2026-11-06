@@ -81,6 +81,12 @@ with sync_playwright() as p:
             if g == 'maths/index.html' and w == 390:
                 c = pg.evaluate('ans(order[n])'); pg.click(f".opt:text-is('{c}')"); pg.wait_for_timeout(200)
                 report('maths right answer gives a gold star', pg.evaluate("res[0]==='ok'"))
+                # after speech, the next answer tap must remake the sound engine (inside the tap) and the cheer must play once
+                pg.reload(); pg.wait_for_timeout(400)
+                pg.evaluate("say('Please try again');window.__ac=AC||ac();window.__cheers=0;const c0=cheer;cheer=function(){window.__cheers++;c0()};0")
+                c = pg.evaluate('ans(order[n])'); pg.locator('.opt', has_text=str(c)).first.click(); pg.wait_for_timeout(400)
+                fresh = pg.evaluate("AC!==window.__ac && !!AC"); cheers = pg.evaluate('window.__cheers')
+                report('maths answer tap after speech remakes the sound and cheers', fresh and cheers == 1, 'new sound engine %s, cheers %d' % (fresh, cheers))
                 # two wrong answers: grey star, then the next question (after the answer is said)
                 pg.reload(); pg.wait_for_timeout(400); errs.clear(); n0 = pg.evaluate('n')
                 for _ in range(2):
@@ -104,6 +110,11 @@ with sync_playwright() as p:
                 report('scribble start button speaks inside the tap', shown and gone and sync > 0, 'shown %s, hidden after tap %s, speak during tap %d' % (shown, gone, sync))
             if g == 'scribble/index.html' and w == 390 and full:
                 pg.evaluate('afterFx=function(){};fireworks=function(){};say=function(){}'); missed = []; worst = 0
+                # after speech, the end of a stroke tries a new sound engine: it switches only if the new one runs, and the cheer still plays
+                sw = pg.evaluate('''(async()=>{spokeSince=true;const old=ac();trySwap();const busy1=!!swapping;await new Promise(r=>setTimeout(r,450));
+                  let n2=0;const c0=cheer;cheer=function(){n2++;c0()};afterSwap(function(){whenAudio(cheer)});await new Promise(r=>setTimeout(r,400));cheer=c0;
+                  return {tried:busy1, swapped:AC!==old, running:AC&&AC.state, cheers:n2, flag:spokeSince}})()''')
+                report('scribble stroke end tries a fresh sound engine safely', sw['tried'] and sw['cheers'] == 1 and (sw['swapped'] == (not sw['flag'])), str(sw))
                 # busy phone: a whole stroke (down the l and back up to the middle) arrives as one pointermove with the points batched (coalesced); all of them must be drawn
                 bat = pg.evaluate('''(()=>{order[n]=Q.find(q=>q.c==='l');res=[];show();const b=pad.getBoundingClientRect(),cx=b.left+b.width/2;
                   const pt=(y,id)=>({clientX:cx,clientY:b.top+y*b.height,pointerId:id,bubbles:true,cancelable:true,isPrimary:true,pointerType:'touch'});
@@ -172,13 +183,16 @@ with sync_playwright() as p:
     pg.locator('.prize').first.click(); pg.click('#askyes'); pg.wait_for_timeout(200)
     bk = pg.evaluate("JSON.parse(localStorage.getItem('star-bank'))"); badge = pg.locator('.prize').first.locator('.owed').count()
     pg.evaluate("localStorage.setItem('star-bank',JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('star-bank')),{earned:400})));draw()")
+    badge_n = pg.locator('.prize').first.locator('.owed b').text_content()
     pg.locator('.prize').first.click(); again = pg.evaluate("$('ask').hidden")  # one sushi already waiting: can't buy another
-    report('prizes ask first, spend stars, show a badge', poor and asked and kept and bk['spent'] == 100 and bk['owed'].get('sushi') == 1 and badge == 1 and again and not errs2,
+    report('prizes ask first, spend stars, show a badge', poor and asked and kept and bk['spent'] == 100 and bk['owed'].get('sushi') == 1 and badge == 1 and badge_n == '1' and again and not errs2,
            'too few: no ask %s; ask %s; cross keeps stars %s; tick: %s, badge %d; a second one refused %s %s' % (poor, asked, kept, bk, badge, again, errs2[:1]))
     pg.evaluate("localStorage.setItem('star-bank',JSON.stringify({earned:300,spent:200,owed:{sushi:1,milkshake:1}}))")
     pg.goto((ROOT / 'options/index.html').as_uri()); pg.wait_for_timeout(200)
     for d in '1985': pg.locator('#keys button', has_text=d).first.click()
     rows = pg.locator('#owed .row').count()
+    head = pg.evaluate("!$('owedall').hidden && $('owedn').textContent"); rowb = pg.evaluate("[...document.querySelectorAll('#owed .row .owed b')].map(b=>b.textContent).join(',')")
+    report('options star badges count prizes to give', head == '2' and rowb == '1,1', 'heading %s, rows %s' % (head, rowb))
     pg.click('#plus50'); plus = pg.evaluate("JSON.parse(localStorage.getItem('star-bank')).earned")
     pg.click('#minus50'); pg.click('#minus50'); pg.click('#minus50'); pg.click('#minus50'); minus = pg.evaluate("JSON.parse(localStorage.getItem('star-bank')).earned")
     report('options +50 and -50 stars buttons', plus == 350 and minus == 200 and '0 to spend' in pg.evaluate("$('stars').textContent"), 'after +50 earned %s; after 4 x -50 earned %s (spent 200), %s' % (plus, minus, pg.evaluate("$('stars').textContent")))

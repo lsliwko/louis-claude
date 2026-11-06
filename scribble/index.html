@@ -203,7 +203,8 @@ function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(functio
   var rank=function(v){var nm=(v.name||'')+' '+(v.voiceURI||'');return (/premium|enhanced|neural|natural/i.test(nm)?0:2)+(/super-compact/i.test(nm)?1:0)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
   vs.sort(function(a,b){return rank(a)-rank(b)});VOICE=vs[0]||null}catch(e){}}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
-function say(t){try{var ss=window.speechSynthesis;if(!ss)return;
+var spokeSince=false;   // speech has run since the sound engine was last (re)made
+function say(t){spokeSince=true;try{var ss=window.speechSynthesis;if(!ss)return;
   if(!VOICE)pickVoice();
   var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;ss.resume();ss.speak(UTT)}catch(e){}};
   // Speak straight away (iPhone only speaks inside the tap itself, not after a delay); if a browser drops speech
@@ -301,6 +302,16 @@ pad.addEventListener('pointerdown',function(e){if(busy||done)return;e.preventDef
 pad.addEventListener('pointermove',function(e){if(e.pointerId!==drawing)return;e.preventDefault();
   var evs=[];try{evs=e.getCoalescedEvents?e.getCoalescedEvents():[]}catch(_){}if(!evs||!evs.length)evs=[e];
   for(var i=0;i<evs.length;i++){var p=pos(evs[i]);addPoint(p[0],p[1])}});
+// iPhone: speech started without a tap (each new shape's prompt) can leave Web Audio silent though it says it's running,
+// and only a tap can bring it back. Drawing has no taps, so at the end of each stroke try a new sound engine and switch to it
+// only if it really starts (otherwise keep the old one): this can't make sound worse. Sounds wait for the try (0.35s at most).
+var swapping=null;
+function trySwap(){if(!spokeSince||swapping)return;var C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+  var nc;try{nc=new C();var s=nc.createBufferSource();s.buffer=nc.createBuffer(1,1,22050);s.connect(nc.destination);s.start(0);var p=nc.resume();if(p&&p.catch)p.catch(function(){})}catch(e){return}
+  var t0=Date.now();swapping=new Promise(function(res){(function chk(){if(nc.state==='running'){try{if(AC&&AC.close)AC.close()}catch(e){}AC=nc;unlocked=true;spokeSince=false;res();return}
+    if(Date.now()-t0>350){try{nc.close()}catch(e){}res();return}setTimeout(chk,50)})()}).then(function(){swapping=null})}
+function afterSwap(fn){if(swapping)swapping.then(fn);else fn()}
+pad.addEventListener('touchend',trySwap);
 function lift(e){if(e.pointerId!==drawing)return;drawing=null;check()}
 pad.addEventListener('pointerup',lift);pad.addEventListener('pointercancel',lift);
 // After each finger lift: enough of the shape covered? Then it is a star if the ink is tidy, or a try again if it is messy.
@@ -316,8 +327,8 @@ function show(){var x=order[n];tries=0;busy=false;done=false;
   glyph=x.c;strokes=[];buildMask(glyph);sizePad();if($('go').hidden)setTimeout(function(){say(x.say)},300)}
 function right(){if(busy)return;busy=true;done=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);redraw(css('--good'));
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
-  try{speechSynthesis.cancel()}catch(e){}whenAudio(cheer);fireworks();afterFx(function(){n++;n<order.length?show():end()})}
-function wrong(){if(busy)return;var x=order[n];tries++;whenAudio(buzz);if(tries===1)noteMiss(x.k);
+  try{speechSynthesis.cancel()}catch(e){}afterSwap(function(){whenAudio(cheer)});fireworks();afterFx(function(){n++;n<order.length?show():end()})}
+function wrong(){if(busy)return;var x=order[n];tries++;afterSwap(function(){whenAudio(buzz)});if(tries===1)noteMiss(x.k);
   if(tries>=TRIES){busy=true;done=true;mark(false);redraw(css('--soft'));fb("Let's try the next one",'info');
     setTimeout(function(){say("Let's try the next one")},850);setTimeout(function(){n++;n<order.length?show():end()},3000);return}
   fb('Stay on the shape. Try again!','no');setTimeout(function(){say('Stay on the shape. Please try again')},850)}
