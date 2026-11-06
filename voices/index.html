@@ -53,7 +53,7 @@ function $(id){return document.getElementById(id)}
 var SAMPLE='Bee like ball. Well done! Three times four is twelve.',KEY='voice';
 function saved(){try{return localStorage.getItem(KEY)||''}catch(e){return''}}
 function save(n){try{n?localStorage.setItem(KEY,n):localStorage.removeItem(KEY)}catch(e){}}
-function kind(v){var n=(v.name||'')+' '+(v.voiceURI||'');return /premium/i.test(n)?'Premium':/enhanced/i.test(n)?'Enhanced':/neural|natural/i.test(n)?'Natural':'Standard'}
+function kind(v){var n=(v.name||'')+' '+(v.voiceURI||'');return /premium/i.test(n)?'Premium':/enhanced/i.test(n)?'Enhanced':/neural|natural/i.test(n)?'Natural':/super-compact/i.test(n)?'Basic (smallest, most robotic)':'Standard'}
 function voices(){try{return (speechSynthesis.getVoices()||[]).filter(function(v){return /^en[-_]GB/i.test(v.lang)})}catch(e){return[]}}
 function hear(v){try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(SAMPLE);if(v)u.voice=v;u.lang='en-GB';u.rate=0.8;speechSynthesis.speak(u)}catch(e){}}
 function row(L,name,sub,on,play,use){var li=document.createElement('li');li.className='row'+(on?' on':'');
@@ -67,10 +67,10 @@ function draw(){var all=voices(),cur=saved(),L=$('list');L.innerHTML='';
   var seen={},vs=all.filter(function(v){var k=v.name+'|'+(v.voiceURI||'');if(seen[k])return false;seen[k]=1;return true});
   $('none').hidden=vs.length>0;
   row(L,"Phone's British voice","No voice named: the phone picks its own British English voice",cur==='phone',function(){hear(null)},function(){save('phone');draw();hear(null)});
-  var order={Premium:0,Enhanced:1,Natural:1,Standard:2};
-  vs.sort(function(a,b){return order[kind(a)]-order[kind(b)]||a.name.localeCompare(b.name)});
+  var q=function(v){var k=kind(v);return k==='Premium'?0:k==='Enhanced'||k==='Natural'?1:k==='Standard'?2:3};
+  vs.sort(function(a,b){return q(a)-q(b)||a.name.localeCompare(b.name)});
   vs.forEach(function(v){var id=v.voiceURI&&v.voiceURI!==v.name?' · '+v.voiceURI:'';
-    row(L,v.name,kind(v)+(v.localService===false?' · needs internet':'')+id,v.name===cur,function(){hear(v)},function(){save(v.name);draw();hear(v)})});
+    row(L,v.name,kind(v)+(v.localService===false?' · needs internet':'')+id,(v.voiceURI||v.name)===cur,function(){hear(v)},function(){save(v.voiceURI||v.name);draw();hear(v)})});
   $('auto').textContent=cur?'Let the games choose':'The games are choosing';}
 $('auto').onclick=function(){save('');draw()};
 draw();try{speechSynthesis.onvoiceschanged=draw}catch(e){}setTimeout(draw,600);setTimeout(draw,2000);
