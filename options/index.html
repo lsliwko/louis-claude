@@ -131,12 +131,13 @@ function draw(){var all=voices(),cur=saved(),L=$('list');L.innerHTML='';
     row(L,v.name,kind(v)+(v.localService===false?' · needs internet':'')+id,(v.voiceURI||v.name)===cur,function(){hear(v)},function(){save(v.voiceURI||v.name);draw();hear(v)})});
   $('auto').hidden=!stored();}
 $('auto').onclick=function(){save('');draw()};
-// Grown-ups only: the year they were born (18 to 110 years ago) opens the options. Asked every time the page opens.
+// Grown-ups only: only the parents' birth years (YEARS) open the options. Asked every time the page opens.
+var YEARS=['1981','1991'];
 var typed='';
 function dots(){var d=$('dots').children;for(var i=0;i<4;i++)d[i].textContent=typed.charAt(i)}
 function key(k){if(k==='del'){typed=typed.slice(0,-1);dots();return}if(typed.length>=4)return;typed+=k;dots();
-  if(typed.length===4){var age=new Date().getFullYear()-parseInt(typed,10);
-    if(age>=18&&age<=110){$('gate').hidden=true;$('opts').hidden=false;draw();drawPrizes();drawLevels()}
+  if(typed.length===4){
+    if(YEARS.indexOf(typed)>=0){$('gate').hidden=true;$('opts').hidden=false;draw();drawPrizes();drawLevels()}
     else setTimeout(function(){var d=$('dots');d.classList.remove('bad');void d.offsetWidth;d.classList.add('bad');typed='';dots()},250)}}
 ['1','2','3','4','5','6','7','8','9','','0','del'].forEach(function(k){var b=document.createElement('button');b.type='button';
   if(!k){b.className='blank';b.tabIndex=-1;b.setAttribute('aria-hidden','true')}

@@ -25,14 +25,16 @@ with sync_playwright() as p:
                 # choose a voice on the Voice page, then a game must use it (fake British voices, as on an iPhone)
                 fake = '''(()=>{const vs=[['Daniel','com.apple.voice.super-compact.en-GB.Daniel'],['Daniel','com.apple.voice.compact.en-GB.Daniel'],['Daniel','com.apple.voice.compact.en-GB.Daniel'],['Martha','com.apple.voice.compact.en-GB.Martha']].map(([n,u])=>({name:n,voiceURI:u,lang:'en-GB',localService:true}));
                   vs.push({name:'Samantha',lang:'en-US',localService:true});speechSynthesis.getVoices=()=>vs;})()'''
-                # grown-ups gate: a child's year is refused, an adult's year opens the options
-                kid = str(__import__('datetime').date.today().year - 5)
-                for d in kid: pg.locator('#keys button', has_text=d).first.click()
-                pg.wait_for_timeout(400); shut = pg.evaluate("$('opts').hidden && !$('gate').hidden && !$('list').offsetParent")
+                # grown-ups gate: only the parents' years (YEARS) open it; a child's year or any other adult year is refused
+                shut = True
+                for y in [str(__import__('datetime').date.today().year - 5), '1985']:
+                    for d in y: pg.locator('#keys button', has_text=d).first.click()
+                    pg.wait_for_timeout(400); shut = shut and pg.evaluate("$('opts').hidden && !$('gate').hidden && !$('list').offsetParent")
                 pg.evaluate(fake)
-                for d in '1985': pg.locator('#keys button', has_text=d).first.click()
+                yr = pg.evaluate('YEARS[0]')
+                for d in yr: pg.locator('#keys button', has_text=d).first.click()
                 opened = pg.evaluate("$('opts').hidden===false && $('gate').hidden && !!$('list').offsetParent")
-                report('options gate refuses a child, opens for a grown-up', shut and opened, 'child year %s shut %s, 1985 opens %s' % (kid, shut, opened))
+                report('options gate opens only for the set years', shut and opened, 'child year and 1985 refused %s, %s opens %s' % (shut, yr, opened))
                 pg.evaluate('draw()')
                 rows = pg.locator('#list .row').count(); pg.locator('#list .row', has_text='super-compact').locator('.use').click()
                 chosen = pg.evaluate("localStorage.getItem('voice')")
@@ -197,7 +199,7 @@ with sync_playwright() as p:
            'too few: no ask %s; ask %s; cross keeps stars %s; tick: %s, badge %d; a second one refused %s %s' % (poor, asked, kept, bk, badge, again, errs2[:1]))
     pg.evaluate("localStorage.setItem('star-bank',JSON.stringify({earned:300,spent:200,owed:{sushi:1,milkshake:1}}))")
     pg.goto((ROOT / 'options/index.html').as_uri()); pg.wait_for_timeout(200)
-    for d in '1985': pg.locator('#keys button', has_text=d).first.click()
+    for d in pg.evaluate('YEARS[0]'): pg.locator('#keys button', has_text=d).first.click()
     rows = pg.locator('#owed .row').count()
     pg.evaluate("localStorage.setItem('mx-level-2',JSON.stringify({'+':{lv:2,h:[1]},'x':{lv:1,h:[]}}));localStorage.setItem('rd-level',JSON.stringify({lv:3,h:[1,1]}));drawLevels()")
     lv = pg.evaluate("[...document.querySelectorAll('#levels .row b')].map(b=>b.textContent)")
