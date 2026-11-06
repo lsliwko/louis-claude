@@ -192,7 +192,8 @@ function pickVoice(){try{var vs=(speechSynthesis.getVoices()||[]).filter(functio
   var rank=function(v){var nm=(v.name||'')+' '+(v.voiceURI||'');return (/premium|enhanced|neural|natural/i.test(nm)?0:2)+(/super-compact/i.test(nm)?1:0)+(/daniel|kate|serena|arthur|martha|stephanie|google uk/i.test(nm)?0:1)};
   vs.sort(function(a,b){return rank(a)-rank(b)});VOICE=vs[0]||null}catch(e){}}
 try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
-function say(t){try{var ss=window.speechSynthesis;if(!ss)return;
+var spokeSince=false;   // speech has run since the sound engine was last (re)made
+function say(t){spokeSince=true;try{var ss=window.speechSynthesis;if(!ss)return;
   if(!VOICE)pickVoice();
   var go=function(){try{UTT=new SpeechSynthesisUtterance(t);if(VOICE)UTT.voice=VOICE;UTT.lang='en-GB';UTT.rate=0.8;UTT.volume=1;UTT.onstart=function(){speechOn=true};ss.resume();ss.speak(UTT)}catch(e){}};
   if(ss.speaking||ss.pending){ss.cancel();setTimeout(go,120)}else go()}catch(e){}}
@@ -315,21 +316,22 @@ function show(){var x=order[n];tries=0;busy=false;CASE=CASES[Math.floor(Math.ran
     if(!$('go').hidden)b.disabled=true;b.onclick=function(){answer(b,v)};box.appendChild(b)});fitOpts();
   if($('go').hidden)setTimeout(function(){if(order[n]===x&&!busy)say(x.w)},300)}
 function reveal(x){Array.prototype.forEach.call($('opts').children,function(b){if(b.dataset.w===x.w)b.classList.add('ok');b.disabled=true})}
-function answer(b,v){if(busy||b.disabled||!$('go').hidden)return;ac();var x=order[n];
+// iPhone: speech started without a tap (each new word) leaves Web Audio silent even though it says it's running, and only
+// a tap can bring it back. So on each answer tap: stop any speech, remake the sound engine inside the tap if speech has
+// run since, then play. The fireworks and moving on never wait for sound.
+function freshAudio(){try{speechSynthesis.cancel()}catch(e){}
+  if(spokeSince||!AC||AC.state!=='running'){try{if(AC&&AC.close)AC.close()}catch(e){}AC=null;unlocked=false;spokeSince=false}ac()}
+function answer(b,v){if(busy||b.disabled||!$('go').hidden)return;freshAudio();var x=order[n];
   if(v===x.w)return right(b);
   b.classList.add('no','shake');b.disabled=true;wrong()}
-// On iPhone, starting the cheer while the word is still being spoken (or cutting the speech off) leaves Web Audio silent,
-// so wait for speech to finish (2.5s at most), then play.
-function afterSpeech(fn){var t0=Date.now();(function chk(){var sp=false;try{sp=speechSynthesis.speaking||speechSynthesis.pending}catch(e){}
-  if(sp&&Date.now()-t0<2500){setTimeout(chk,100);return}setTimeout(function(){whenAudio(fn)},sp?0:150)})()}
 function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);record(tries===0?1:0.5);reveal(x);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
-  afterSpeech(function(){cheer();fireworks();afterFx(function(){n++;n<order.length?show():end()})})}
+  whenAudio(cheer);fireworks();afterFx(function(){n++;n<order.length?show():end()})}
 // One mistake is allowed: the 2nd wrong tap shows the right word in green, says it, gives a grey star and moves on.
-function wrong(){if(busy)return;var x=order[n];tries++;if(tries===1)noteMiss(x.k);
+function wrong(){if(busy)return;var x=order[n];tries++;if(tries===1)noteMiss(x.k);whenAudio(buzz);
   if(tries>=TRIES){busy=true;mark(false);record(0);reveal(x);fb(cased(x.w),'info');
-    afterSpeech(function(){buzz();setTimeout(function(){say('It says '+x.w)},850);setTimeout(function(){n++;n<order.length?show():end()},3800)});return}
-  fb('Please try again','no');afterSpeech(function(){buzz();setTimeout(function(){say('Please try again')},850)})}
+    setTimeout(function(){say('It says '+x.w)},850);setTimeout(function(){n++;n<order.length?show():end()},3800);return}
+  fb('Please try again','no');setTimeout(function(){say('Please try again')},850)}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';

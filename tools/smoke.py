@@ -56,8 +56,12 @@ with sync_playwright() as p:
                 freed = pg.evaluate("!document.body.classList.contains('waiting') && !$('hear').disabled && [...$('opts').children].every(b=>!b.disabled)")
                 report('reading buttons wait for the start tap', locked and still and freed, 'before: locked %s, a tap on a word ignored %s; after: free %s' % (locked, still, freed))
                 report('reading start button says the word', shown and pg.evaluate("$('go').hidden") and word in said, 'said in the tap: %s (word %s)' % (said, word))
-                pg.click(f".opt[data-w='{word}']"); pg.wait_for_timeout(200)
+                pg.evaluate("window.__ac=AC;window.__cheers=0;const c0=cheer;cheer=function(){window.__cheers++;c0()};0")
+                pg.click(f".opt[data-w='{word}']"); pg.wait_for_timeout(400)
                 report('reading right word gives a gold star', pg.evaluate("res[0]==='ok'"))
+                # the word was spoken, so the answer tap must remake the sound engine (inside the tap) and the cheer must play
+                fresh = pg.evaluate("AC!==window.__ac && !!AC"); cheers = pg.evaluate('window.__cheers')
+                report('reading answer tap after speech remakes the sound and cheers', fresh and cheers == 1, 'new sound engine %s, cheers %d' % (fresh, cheers))
                 pg.wait_for_timeout(5000); said2 = pg.evaluate('window.__said'); w2 = pg.evaluate('order[n].w')
                 report('reading next word is said when it appears', pg.evaluate('n') == 1 and w2 in said2, 'n %d, said %s' % (pg.evaluate('n'), said2[-2:]))
                 # letter case: one case for all four words per question, all three cases turn up, and no word spills out of its button
