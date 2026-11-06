@@ -73,8 +73,12 @@ with sync_playwright() as p:
                 report('reading letter case varies, same for all four words', cs[0] == 'lower title upper' and not cs[1], 'cases %s; spilling %s' % (cs[0], cs[1] or 'none'))
                 # two wrong words: grey star, then the next word
                 pg.reload(); pg.wait_for_timeout(400); errs.clear(); pg.click('#go'); n0 = pg.evaluate('n')
-                for _ in range(2):
+                for k in range(2):
                     c = pg.evaluate('order[n].w'); pg.locator(f".opt:not([disabled]):not([data-w='{c}'])").first.click(); pg.wait_for_timeout(200)
+                    if k == 0:  # after the first wrong answer every answer rests for 1s, then the untried ones come back
+                        rest = pg.evaluate("[...$('opts').children].every(b=>b.disabled)"); pg.wait_for_timeout(1000)
+                        back = pg.evaluate("[...$('opts').children].filter(b=>!b.disabled).length")
+                        report('reading answers rest 1s after a wrong answer', rest and back == 3, 'all disabled %s, then %d enabled' % (rest, back))
                 pg.wait_for_timeout(4200)
                 moved = pg.evaluate('n') == n0 + 1 and pg.evaluate("res[%d]==='miss'" % n0)
                 report('reading two wrong words move on', moved and not errs, '; '.join(errs)[:160] or ('n %d -> %d' % (n0, pg.evaluate('n'))))
@@ -89,8 +93,12 @@ with sync_playwright() as p:
                 report('maths answer tap after speech remakes the sound and cheers', fresh and cheers == 1, 'new sound engine %s, cheers %d' % (fresh, cheers))
                 # two wrong answers: grey star, then the next question (after the answer is said)
                 pg.reload(); pg.wait_for_timeout(400); errs.clear(); n0 = pg.evaluate('n')
-                for _ in range(2):
+                for k in range(2):
                     c = pg.evaluate('ans(order[n])'); pg.locator('.opt:not([disabled])').filter(has_not_text=str(c)).first.click(); pg.wait_for_timeout(200)
+                    if k == 0:  # after the first wrong answer every answer rests for 1s, then the untried ones come back
+                        rest = pg.evaluate("[...$('opts').children].every(b=>b.disabled)"); pg.wait_for_timeout(1000)
+                        back = pg.evaluate("[...$('opts').children].filter(b=>!b.disabled).length")
+                        report('maths answers rest 1s after a wrong answer', rest and back == 3, 'all disabled %s, then %d enabled' % (rest, back))
                 pg.wait_for_timeout(4200)
                 moved = pg.evaluate('n') == n0 + 1 and pg.evaluate("res[%d]==='miss'" % n0)
                 report('maths two wrong answers move on', moved and not errs, '; '.join(errs)[:160] or ('n %d -> %d' % (n0, pg.evaluate('n'))))

@@ -65,6 +65,7 @@ button:active{transform:scale(.97)}
 @keyframes gopulse{50%{transform:scale(1.08)}}
 @media (prefers-reduced-motion: reduce){.go span{animation:none}}
 .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.opts.pause .opt:not(.no){opacity:.55}
 .opt{min-width:0;min-height:96px;padding:0;font-family:var(--display);font-weight:700;font-size:40px;line-height:1;color:var(--on-btn);background:var(--btn);border-color:var(--btn)}
 .opt.ok{background:var(--btn-ok);border-color:var(--btn-ok);color:var(--on-btn)}
 .opt.no{background:var(--btn-no);border-color:var(--btn-no);color:var(--on-btn);opacity:.6}
@@ -349,7 +350,10 @@ function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(
 function wrong(){if(busy)return;var x=order[n];tries++;if(tries===1)noteMiss(x.k);whenAudio(buzz);
   if(tries>=TRIES){busy=true;mark(false);record(0);reveal(x);fb(cased(x.w),'info');
     setTimeout(function(){say('It says '+x.w)},850);setTimeout(function(){n++;n<order.length?show():end()},3800);return}
-  fb('Please try again','no');setTimeout(function(){say('Please try again')},850)}
+  fb('Please try again','no');pauseOpts(1000);setTimeout(function(){say('Please try again')},850)}
+// After a wrong answer, all answers rest for a moment (faded, can't be tapped) so a quick second tap can't be a guess.
+function pauseOpts(ms){var o=$('opts'),q=n;o.classList.add('pause');Array.prototype.forEach.call(o.children,function(b){b.disabled=true});
+  setTimeout(function(){o.classList.remove('pause');if(busy||q!==n)return;Array.prototype.forEach.call(o.children,function(b){if(!b.classList.contains('no'))b.disabled=false})},ms)}
 function lock(id){var b=$(id);if(!b||b.disabled)return false;b.disabled=true;setTimeout(function(){b.disabled=false},id==='hear'?3000:500);return true}
 function end(){$('bar').style.width='100%';$('prog').textContent='All done';
   var L=order.length,st=score,s='';for(var i=0;i<L;i++)s+=res[i]==='ok'?'<span>★</span>':'<span class="off">★</span>';
