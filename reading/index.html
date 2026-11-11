@@ -274,7 +274,7 @@ var SAME=[['hat','cap'],['ship','boat','canoe'],['bed','cot'],['house','hut','te
   ['tie','shirt'],['goose','duck','swan'],['otter','beaver'],['badger','skunk'],['rhino','hippo'],['jellyfish','octopus','squid'],['sandwich','bread'],
   ['pancakes','waffle'],['bagel','doughnut'],['comet','star'],['helicopter','plane'],['skateboard','scooter']];
 function same(a,b){return SAME.some(function(g){return g.indexOf(a)>=0&&g.indexOf(b)>=0})}
-var CHOICES=4,TRIES=2;
+var CHOICES=4,TRIES=1;   // no mistakes allowed: the first wrong tap ends the question (user's request, 11 Nov)
 var MKEY='rd-misses',MISS={};try{MISS=JSON.parse(localStorage.getItem(MKEY)||'{}')||{}}catch(e){MISS={}}
 function saveMiss(){try{localStorage.setItem(MKEY,JSON.stringify(MISS))}catch(e){}}
 function noteMiss(k){MISS[k]=Math.min((MISS[k]||0)+1,5);saveMiss()}
@@ -346,7 +346,7 @@ function answer(b,v){if(busy||b.disabled||!$('go').hidden)return;freshAudio();va
 function right(b){if(busy)return;busy=true;var x=order[n];score++;mark(true);if(tries===0)noteHit(x.k);record(tries===0?1:0.5);reveal(x);
   var c=['Well done!','Brilliant!','Super!','Great job!','Perfect!'];fb(c[Math.floor(Math.random()*c.length)],'ok');
   whenAudio(cheer);fireworks();afterFx(function(){n++;n<order.length?show():end()})}
-// One mistake is allowed: the 2nd wrong tap shows the right word in green, says it, gives a grey star and moves on.
+// TRIES wrong taps end the question (now 1: no mistakes): it shows the right word in green, says it, gives a grey star and moves on.
 function wrong(){if(busy)return;var x=order[n];tries++;if(tries===1)noteMiss(x.k);whenAudio(buzz);
   if(tries>=TRIES){busy=true;mark(false);record(0);reveal(x);fb(cased(x.w),'info');
     setTimeout(function(){say('It says '+x.w)},850);setTimeout(function(){n++;n<order.length?show():end()},3800);return}

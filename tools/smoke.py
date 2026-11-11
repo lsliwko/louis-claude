@@ -73,24 +73,20 @@ with sync_playwright() as p:
                     seen[k]=1;[...$('opts').children].forEach(b=>{if(b.scrollWidth>b.clientWidth)bad.push(b.textContent)})}
                   return [Object.keys(seen).sort().join(' '),bad.slice(0,3)]})()''')
                 report('reading letter case varies, same for all four words', cs[0] == 'lower title upper' and not cs[1], 'cases %s; spilling %s' % (cs[0], cs[1] or 'none'))
-                # two wrong words: grey star, then the next word
+                # no mistakes allowed: one wrong word shows the right one, gives a grey star, then the next word
                 pg.reload(); pg.wait_for_timeout(400); errs.clear(); pg.click('#go'); n0 = pg.evaluate('n')
-                for k in range(2):
-                    c = pg.evaluate('order[n].w'); pg.locator(f".opt:not([disabled]):not([data-w='{c}'])").first.click(); pg.wait_for_timeout(200)
-                    if k == 0:  # after the first wrong answer every answer rests for 1s, then the untried ones come back
-                        rest = pg.evaluate("[...$('opts').children].every(b=>b.disabled)"); pg.wait_for_timeout(1000)
-                        back = pg.evaluate("[...$('opts').children].filter(b=>!b.disabled).length")
-                        report('reading answers rest 1s after a wrong answer', rest and back == 3, 'all disabled %s, then %d enabled' % (rest, back))
+                c = pg.evaluate('order[n].w'); pg.locator(f".opt:not([disabled]):not([data-w='{c}'])").first.click(); pg.wait_for_timeout(300)
+                shown = pg.evaluate("[...$('opts').children].every(b=>b.disabled) && !!document.querySelector('.opt.ok')")
                 pg.wait_for_timeout(4200)
                 moved = pg.evaluate('n') == n0 + 1 and pg.evaluate("res[%d]==='miss'" % n0)
-                report('reading two wrong words move on', moved and not errs, '; '.join(errs)[:160] or ('n %d -> %d' % (n0, pg.evaluate('n'))))
+                report('reading one wrong word moves on', shown and moved and not errs, '; '.join(errs)[:160] or ('right word shown %s, n %d -> %d' % (shown, n0, pg.evaluate('n'))))
             if g == 'maths/index.html' and w == 390:
                 c = pg.evaluate('ans(order[n])'); pg.click(f".opt:text-is('{c}')"); pg.wait_for_timeout(200)
                 report('maths right answer gives a gold star', pg.evaluate("res[0]==='ok'"))
                 # after speech, the next answer tap must remake the sound engine (inside the tap) and the cheer must play once
                 pg.reload(); pg.wait_for_timeout(400)
                 pg.evaluate("say('Please try again');window.__ac=AC||ac();window.__cheers=0;const c0=cheer;cheer=function(){window.__cheers++;c0()};0")
-                c = pg.evaluate('ans(order[n])'); pg.locator('.opt', has_text=str(c)).first.click(); pg.wait_for_timeout(400)
+                c = pg.evaluate('ans(order[n])'); pg.locator('.opt', has_text=str(c)).first.click(); pg.wait_for_timeout(1100)  # whenAudio may wait up to 0.9s
                 fresh = pg.evaluate("AC!==window.__ac && !!AC"); cheers = pg.evaluate('window.__cheers')
                 report('maths answer tap after speech remakes the sound and cheers', fresh and cheers == 1, 'new sound engine %s, cheers %d' % (fresh, cheers))
                 # two wrong answers: grey star, then the next question (after the answer is said)
