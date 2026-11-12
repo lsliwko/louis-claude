@@ -28,6 +28,8 @@ Then read `.claude/skills/kids-mini-games/SKILL.md` for the rules and `docs/tool
 
 ## Open items
 
+- 12 Nov: Tricky Words said "are" badly (user); now spoken as "ah" (`sp`, British "are"). If that sounds wrong too, try "arr". Waiting for the user to listen.
+
 - 11 Nov: Reading allows no mistakes now (`TRIES=1`). Tricky Words "all" also accepts runs of zeros ("00000"): recognition can write "oh" as the digit 0, which looks like O in the game's font. The long-o list from 6 Nov was already live, so if "OOOOO" is still refused, ask exactly what the game shows after "heard".
 
 - Sound audit (6 Nov): Maths now remakes the sound engine in the answer tap after speech, Scribble tries a fresh one after each stroke, and Reading and Prizes speak inside the tap. Tricky Words is unchanged. Waiting for the user to confirm on the iPhone that every cheer is heard in Maths, Scribble and Reading.
